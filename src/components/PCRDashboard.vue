@@ -42,6 +42,32 @@
           />
         </div>
 
+        <!-- Expiry Information Banner -->
+        <q-banner v-if="currentIndexData" class="bg-indigo-1 q-mb-md" rounded>
+          <template v-slot:avatar>
+            <q-icon name="event" color="indigo" />
+          </template>
+          <div class="row items-center q-gutter-md">
+            <div>
+              <div class="text-weight-bold text-indigo-9">Options Expiry Information</div>
+              <div class="text-caption text-grey-7">Data shown for current month expiry</div>
+            </div>
+            <q-space />
+            <div class="row q-gutter-md">
+              <div>
+                <q-chip color="indigo" text-color="white" icon="event">
+                  Current: {{ currentIndexData.currentExpiry }}
+                </q-chip>
+              </div>
+              <div>
+                <q-chip color="indigo-3" text-color="indigo-9" icon="event_upcoming">
+                  Next: {{ currentIndexData.nextExpiry }}
+                </q-chip>
+              </div>
+            </div>
+          </div>
+        </q-banner>
+
         <q-banner v-if="error" class="bg-negative text-white q-mb-md" rounded>
           <template v-slot:avatar>
             <q-icon name="error" />
