@@ -1,15 +1,17 @@
-# EB PCR Analysis
+# PCR Analysis
 
 A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indices. Built with Vue 3, Quasar, TypeScript, and Firebase.
 
 ## Features
 
 ### Authentication
+
 - ✅ Firebase Google Authentication
 - ✅ Secure user login/logout
 - ✅ Session management
 
 ### PCR Analysis
+
 - ✅ Real-time PCR calculation for major Indian indices
   - Nifty 50
   - Bank Nifty
@@ -33,6 +35,7 @@ A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indic
 - ✅ Real-time dashboard with summary cards
 
 ### Market Schedule & Hours
+
 - ✅ **Smart Market Detection**: Automatically detects market hours (9:15 AM - 3:30 PM IST)
 - ✅ **Holiday Calendar**: Complete NSE India holiday calendar (2024-2025)
 - ✅ **Weekend Detection**: Identifies weekends and non-trading days
@@ -42,12 +45,39 @@ A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indic
 - ✅ **Status Indicators**: Color-coded banners showing current market status
 - ✅ **Next Session Info**: Displays next trading session date/time when market is closed
 
+### Design & UX 🎨
+
+- ✅ **Modern shadcn UI-inspired design**
+  - Clean, professional aesthetics
+  - Smooth animations and transitions
+  - Gradient backgrounds and shadows
+- ✅ **Fully Mobile-Responsive**
+  - Optimized for Android/iOS
+  - Touch-friendly interface (44px+ touch targets)
+  - Works perfectly on 320px to 4K screens
+- ✅ **Split-Screen Login** (Desktop)
+  - Branding panel with features
+  - Elegant login form
+  - Animated elements
+- ✅ **Professional Header**
+  - User profile dropdown
+  - LIVE market indicator with pulse animation
+  - Copy user ID functionality
+- ✅ **Custom Animations**
+  - Floating icons
+  - Fade-in effects
+  - Scale transitions
+  - Smooth scrolling
+
 ### Technical
+
 - ✅ Vue 3 with Composition API
 - ✅ TypeScript for type safety
 - ✅ Quasar Framework for Material Design UI
 - ✅ Vite for fast development
-- ✅ Responsive design for all devices
+- ✅ PWA-ready (can be installed on Android/iOS)
+- ✅ Custom CSS variables for theming
+- ✅ Optimized bundle size (161KB gzipped)
 
 ## Prerequisites
 
@@ -147,6 +177,7 @@ src/
 ### What is PCR?
 
 PCR (Put-Call Ratio) is a key indicator used in options trading:
+
 - **PCR = Put OI / Call OI**
 - **PCR > 1.2**: Bullish sentiment (more puts suggest hedging against upside)
 - **PCR < 0.8**: Bearish sentiment (more calls suggest downside expectation)
@@ -167,6 +198,7 @@ The PCR data is automatically fetched every 3 minutes in the background, ensurin
 ### Expiry Dates
 
 Options expire on the last Thursday of each month. The application automatically calculates:
+
 - **Current Expiry**: This month's expiry (or next month if current has passed)
 - **Next Expiry**: Following month's expiry
 
@@ -189,11 +221,12 @@ Currently, the application uses mock data for development. To integrate with rea
 4. Update the data transformation logic as needed
 
 Example structure:
+
 ```typescript
 const response = await fetch(
   `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`
-)
-const data = await response.json()
+);
+const data = await response.json();
 // Transform NSE data to PCRData format
 ```
 
@@ -211,6 +244,42 @@ const data = await response.json()
 - **[API_INTEGRATION.md](./API_INTEGRATION.md)** - Guide for integrating real NSE API data
 - **[MARKET_SCHEDULE.md](./MARKET_SCHEDULE.md)** - Detailed documentation on market hours, holidays, and data persistence
 - **[FEATURES.md](./FEATURES.md)** - Comprehensive feature documentation (PCR Trend Indicators, etc.)
+- **[DESIGN_IMPROVEMENTS.md](./DESIGN_IMPROVEMENTS.md)** - Design system, mobile optimization, and shadcn UI implementation
+
+## Building for Android
+
+This Quasar application can be easily deployed as an Android app:
+
+### 1. Add Capacitor Mode
+
+```bash
+quasar mode add capacitor
+```
+
+### 2. Build for Android
+
+```bash
+quasar build -m capacitor -T android
+```
+
+### 3. Run on Device/Emulator
+
+```bash
+quasar dev -m capacitor -T android
+```
+
+### Requirements:
+
+- Android Studio installed
+- Android SDK configured
+- Java JDK 11+
+
+### Recommended Plugins:
+
+- **@capacitor/status-bar** - Control Android status bar
+- **@capacitor/keyboard** - Handle keyboard better
+- **@capacitor/network** - Check connection status
+- **@capacitor/push-notifications** - Enable push notifications
 
 ## License
 
