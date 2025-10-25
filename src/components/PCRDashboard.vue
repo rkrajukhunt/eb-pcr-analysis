@@ -43,30 +43,23 @@
         </div>
 
         <!-- Expiry Information Banner -->
-        <q-banner v-if="currentIndexData" class="expiry-banner q-mb-md" rounded>
-          <template v-slot:avatar>
-            <q-icon name="event" color="grey-9" />
-          </template>
-          <div class="row items-center q-gutter-md">
-            <div>
-              <div class="text-weight-bold text-grey-9">Options Expiry Information</div>
-              <div class="text-caption text-grey-7">Data shown for current month expiry</div>
+        <div v-if="currentIndexData" class="expiry-banner q-mb-md">
+          <div class="expiry-header">
+            <q-icon name="event" size="sm" class="q-mr-sm" />
+            <span class="text-weight-bold">Options Expiry Information</span>
+          </div>
+          <div class="expiry-content">
+            <div class="expiry-item">
+              <div class="expiry-label">Current Expiry</div>
+              <div class="expiry-value">{{ currentIndexData.currentExpiry }}</div>
             </div>
-            <q-space />
-            <div class="row q-gutter-md">
-              <div>
-                <q-chip color="grey-9" text-color="white" icon="event">
-                  Current: {{ currentIndexData.currentExpiry }}
-                </q-chip>
-              </div>
-              <div>
-                <q-chip color="grey-6" text-color="white" icon="event_upcoming">
-                  Next: {{ currentIndexData.nextExpiry }}
-                </q-chip>
-              </div>
+            <div class="expiry-divider"></div>
+            <div class="expiry-item">
+              <div class="expiry-label">Next Expiry</div>
+              <div class="expiry-value">{{ currentIndexData.nextExpiry }}</div>
             </div>
           </div>
-        </q-banner>
+        </div>
 
         <q-banner v-if="error" class="bg-negative text-white q-mb-md" rounded>
           <template v-slot:avatar>
@@ -312,7 +305,65 @@ function formatNumber(num: number): string {
 }
 
 .expiry-banner {
-  background: #f9fafb;
+  background: #ffffff;
   border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.expiry-header {
+  display: flex;
+  align-items: center;
+  color: #0a0a0a;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.expiry-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.expiry-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expiry-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.expiry-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0a0a0a;
+}
+
+.expiry-divider {
+  width: 1px;
+  height: 40px;
+  background: #e5e7eb;
+}
+
+@media (max-width: 599px) {
+  .expiry-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .expiry-divider {
+    width: 100%;
+    height: 1px;
+  }
 }
 </style>
