@@ -27,16 +27,6 @@ onMounted(() => {
     <!-- Show header only when authenticated -->
     <AppHeader v-if="!showLoginPage" :is-market-open="isMarketOpen" />
 
-    <!-- Simple header for login page -->
-    <q-header v-else elevated class="bg-primary text-white">
-      <q-toolbar>
-        <q-toolbar-title class="row items-center">
-          <q-icon name="show_chart" size="sm" class="q-mr-sm" />
-          <span class="text-weight-bold">PCR Analysis</span>
-        </q-toolbar-title>
-      </q-toolbar>
-    </q-header>
-
     <q-page-container>
       <LoginPage v-if="showLoginPage" />
       <HomePage v-else />
