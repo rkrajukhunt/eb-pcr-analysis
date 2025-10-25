@@ -30,13 +30,23 @@
 
       <template v-slot:body-cell-pcr="props">
         <q-td :props="props">
-          <q-chip
-            :color="getPCRColor(props.row.pcr)"
-            text-color="white"
-            size="sm"
-          >
-            {{ props.row.pcr }}
-          </q-chip>
+          <div class="row items-center justify-center q-gutter-xs">
+            <q-chip
+              :color="getPCRColor(props.row.pcr)"
+              text-color="white"
+              size="sm"
+            >
+              {{ props.row.pcr }}
+            </q-chip>
+            <TrendIndicator
+              v-if="props.row.trend !== 'neutral'"
+              :trend="props.row.trend"
+              :change-percent="props.row.pcrChangePercent"
+              :change="props.row.pcrChange"
+              size="xs"
+              :show-value="true"
+            />
+          </div>
         </q-td>
       </template>
 
@@ -112,6 +122,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { PCRData } from '../types/market'
+import TrendIndicator from './TrendIndicator.vue'
 
 interface Props {
   data: PCRData[]
