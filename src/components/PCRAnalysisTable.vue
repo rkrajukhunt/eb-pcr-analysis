@@ -12,16 +12,12 @@
     >
       <template v-slot:top>
         <div class="full-width row items-center q-gutter-md">
-          <div class="text-h6">PCR Analysis - {{ indexName }}</div>
+          <div class="text-h6">Historical PCR Data</div>
           <q-space />
-          <div class="text-caption text-grey-7">
-            <div>Current Expiry: <strong>{{ currentExpiry }}</strong></div>
-            <div>Next Expiry: <strong>{{ nextExpiry }}</strong></div>
-          </div>
           <q-btn
             color="primary"
             icon="refresh"
-            label="Refresh"
+            label="Refresh Data"
             @click="$emit('refresh')"
             :loading="loading"
           />
