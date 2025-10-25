@@ -37,7 +37,7 @@
         <div class="login-form">
           <!-- Logo for mobile -->
           <div class="mobile-logo lt-md">
-            <q-icon name="show_chart" size="60px" color="primary" />
+            <q-icon name="show_chart" size="60px" color="grey-9" />
           </div>
 
           <div class="form-header">
@@ -134,7 +134,7 @@ const handleGoogleSignIn = async () => {
 <style scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -155,7 +155,7 @@ const handleGoogleSignIn = async () => {
 /* Left Side - Branding */
 .login-branding {
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0a0a0a;
   padding: 3rem;
   display: flex;
   align-items: center;
@@ -212,7 +212,7 @@ const handleGoogleSignIn = async () => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .login-form {
@@ -253,20 +253,20 @@ const handleGoogleSignIn = async () => {
   width: 100%;
   height: 56px;
   background: white;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #d1d5db;
   border-radius: 12px;
   color: #1a1a1a;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .google-btn:hover {
-  background: #f9fafb;
-  border-color: #667eea;
+  background: #fafafa;
+  border-color: #0a0a0a;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .google-btn:active {
@@ -327,7 +327,7 @@ const handleGoogleSignIn = async () => {
   position: relative;
   display: inline-block;
   padding: 0 1rem;
-  background: #fafafa;
+  background: #ffffff;
   color: #9ca3af;
   font-size: 0.75rem;
   text-transform: uppercase;
