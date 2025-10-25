@@ -31,6 +31,35 @@ function getMarketIndicator(pcr: number, oiDiff: number): 'bullish' | 'bearish' 
 }
 
 /**
+ * Calculate PCR trend indicators
+ */
+function calculatePCRTrend(currentPCR: number, previousPCR?: number) {
+  if (!previousPCR) {
+    return {
+      pcrChange: 0,
+      pcrChangePercent: 0,
+      trend: 'neutral' as const
+    }
+  }
+
+  const pcrChange = Number((currentPCR - previousPCR).toFixed(4))
+  const pcrChangePercent = previousPCR !== 0
+    ? Number(((pcrChange / previousPCR) * 100).toFixed(2))
+    : 0
+
+  let trend: 'up' | 'down' | 'neutral'
+  if (Math.abs(pcrChangePercent) < 0.5) {
+    trend = 'neutral'
+  } else if (pcrChange > 0) {
+    trend = 'up'
+  } else {
+    trend = 'down'
+  }
+
+  return { pcrChange, pcrChangePercent, trend }
+}
+
+/**
  * Generate mock PCR data for development
  * In production, this should fetch real data from NSE or data provider
  */
@@ -48,6 +77,9 @@ function generateMockPCRData(previousData?: PCRData): PCRData {
   const oiDiff = previousData ? (callOI + putOI) - (previousData.callOI + previousData.putOI) : 0
   const volumeDiff = previousData ? (callVolume + putVolume) - (previousData.callVolume + previousData.putVolume) : 0
 
+  // Calculate trend indicators
+  const trendData = calculatePCRTrend(pcr, previousData?.pcr)
+
   return {
     timestamp: new Date().toISOString(),
     callOI,
@@ -57,7 +89,8 @@ function generateMockPCRData(previousData?: PCRData): PCRData {
     pcr,
     oiDiff,
     volumeDiff,
-    marketIndicator: getMarketIndicator(pcr, oiDiff)
+    marketIndicator: getMarketIndicator(pcr, oiDiff),
+    ...trendData
   }
 }
 

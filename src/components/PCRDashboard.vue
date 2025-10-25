@@ -66,7 +66,18 @@
                   <q-card flat class="bg-green-1">
                     <q-card-section class="text-center">
                       <div class="text-h4">{{ currentIndexData.latestPCR.pcr }}</div>
-                      <div class="text-caption text-grey-7">Current PCR</div>
+                      <div class="text-caption text-grey-7 q-mb-xs">Current PCR</div>
+                      <TrendIndicator
+                        v-if="currentIndexData.latestPCR.trend !== 'neutral'"
+                        :trend="currentIndexData.latestPCR.trend"
+                        :change-percent="currentIndexData.latestPCR.pcrChangePercent"
+                        :change="currentIndexData.latestPCR.pcrChange"
+                        size="sm"
+                        :show-value="true"
+                      />
+                      <div v-else class="text-caption text-grey-6">
+                        No change
+                      </div>
                     </q-card-section>
                   </q-card>
                 </div>
@@ -172,6 +183,7 @@ import { computed } from 'vue'
 import { usePCRAnalysis } from '../composables/usePCRAnalysis'
 import PCRAnalysisTable from './PCRAnalysisTable.vue'
 import IndexSelector from './IndexSelector.vue'
+import TrendIndicator from './TrendIndicator.vue'
 import type { MarketStatus } from '../types/marketSchedule'
 
 const {

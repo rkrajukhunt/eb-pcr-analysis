@@ -23,6 +23,11 @@ A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indic
   - PCR ratio calculation
   - OI & Volume change tracking
   - Color-coded market indicators (Bullish/Bearish/Neutral)
+  - **PCR Trend Indicators** 🔥
+    - Visual arrows showing trend direction (↑ up, ↓ down)
+    - Percentage change from previous reading
+    - Color-coded trends (Green=Up, Red=Down, Grey=Neutral)
+    - Displayed in table and dashboard cards
 - ✅ Historical data tracking (last 50 records)
 - ✅ Interactive data table with sorting
 - ✅ Real-time dashboard with summary cards
@@ -205,6 +210,7 @@ const data = await response.json()
 
 - **[API_INTEGRATION.md](./API_INTEGRATION.md)** - Guide for integrating real NSE API data
 - **[MARKET_SCHEDULE.md](./MARKET_SCHEDULE.md)** - Detailed documentation on market hours, holidays, and data persistence
+- **[FEATURES.md](./FEATURES.md)** - Comprehensive feature documentation (PCR Trend Indicators, etc.)
 
 ## License
 

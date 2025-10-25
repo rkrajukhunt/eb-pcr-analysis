@@ -8,6 +8,9 @@ export interface PCRData {
   oiDiff: number
   volumeDiff: number
   marketIndicator: 'bullish' | 'bearish' | 'neutral'
+  pcrChange: number // Absolute change from previous reading
+  pcrChangePercent: number // Percentage change from previous reading
+  trend: 'up' | 'down' | 'neutral' // Trend direction
 }
 
 export interface IndexData {
