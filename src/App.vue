@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
-import LoginPage from './components/LoginPage.vue'
-import HomePage from './components/HomePage.vue'
-import AppHeader from './components/AppHeader.vue'
-import { isAuthenticated } from './services/auth'
-import { getMarketStatus } from './services/marketSchedule'
+import { computed, ref, onMounted } from "vue";
+import LoginPage from "./components/LoginPage.vue";
+import HomePage from "./components/HomePage.vue";
+import AppHeader from "./components/AppHeader.vue";
+import { isAuthenticated } from "./services/auth";
+import { getMarketStatus } from "./services/marketSchedule";
 
-const showLoginPage = computed(() => !isAuthenticated.value)
-const isMarketOpen = ref(false)
+const showLoginPage = computed(() => !isAuthenticated.value);
+const isMarketOpen = ref(false);
 
 // Update market status
 const updateMarketStatus = () => {
-  const status = getMarketStatus()
-  isMarketOpen.value = status.isOpen
-}
+  const status = getMarketStatus();
+  isMarketOpen.value = status.isOpen;
+};
 
 onMounted(() => {
-  updateMarketStatus()
+  updateMarketStatus();
   // Update every minute
-  setInterval(updateMarketStatus, 60000)
-})
+  setInterval(updateMarketStatus, 60000);
+});
 </script>
 
 <template>
@@ -32,7 +32,7 @@ onMounted(() => {
       <q-toolbar>
         <q-toolbar-title class="row items-center">
           <q-icon name="show_chart" size="sm" class="q-mr-sm" />
-          <span class="text-weight-bold">EB PCR Analysis</span>
+          <span class="text-weight-bold">PCR Analysis</span>
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
