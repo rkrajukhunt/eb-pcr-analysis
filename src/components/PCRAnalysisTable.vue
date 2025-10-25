@@ -15,11 +15,12 @@
           <div class="text-h6">Historical PCR Data</div>
           <q-space />
           <q-btn
-            color="primary"
+            color="grey-9"
             icon="refresh"
             label="Refresh Data"
             @click="$emit('refresh')"
             :loading="loading"
+            unelevated
           />
         </div>
       </template>
@@ -245,18 +246,33 @@ function getDiffClass(diff: number): string {
 
 .pcr-table {
   font-size: 0.9rem;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 :deep(.q-table__top) {
-  padding: 12px 16px;
-  background-color: #f5f5f5;
+  padding: 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 :deep(.q-table thead tr) {
-  background-color: #e0e0e0;
+  background-color: #f9fafb;
+}
+
+:deep(.q-table thead th) {
+  font-weight: 600;
+  color: #0a0a0a;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 :deep(.q-table tbody td) {
   font-size: 0.85rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+:deep(.q-table tbody tr:hover) {
+  background-color: #fafafa;
 }
 </style>

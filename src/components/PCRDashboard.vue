@@ -43,24 +43,24 @@
         </div>
 
         <!-- Expiry Information Banner -->
-        <q-banner v-if="currentIndexData" class="bg-indigo-1 q-mb-md" rounded>
+        <q-banner v-if="currentIndexData" class="expiry-banner q-mb-md" rounded>
           <template v-slot:avatar>
-            <q-icon name="event" color="indigo" />
+            <q-icon name="event" color="grey-9" />
           </template>
           <div class="row items-center q-gutter-md">
             <div>
-              <div class="text-weight-bold text-indigo-9">Options Expiry Information</div>
+              <div class="text-weight-bold text-grey-9">Options Expiry Information</div>
               <div class="text-caption text-grey-7">Data shown for current month expiry</div>
             </div>
             <q-space />
             <div class="row q-gutter-md">
               <div>
-                <q-chip color="indigo" text-color="white" icon="event">
+                <q-chip color="grey-9" text-color="white" icon="event">
                   Current: {{ currentIndexData.currentExpiry }}
                 </q-chip>
               </div>
               <div>
-                <q-chip color="indigo-3" text-color="indigo-9" icon="event_upcoming">
+                <q-chip color="grey-6" text-color="white" icon="event_upcoming">
                   Next: {{ currentIndexData.nextExpiry }}
                 </q-chip>
               </div>
@@ -80,19 +80,19 @@
             <q-card-section>
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-3">
-                  <q-card flat class="bg-blue-1">
+                  <q-card flat class="dashboard-card" bordered>
                     <q-card-section class="text-center">
-                      <div class="text-h6">{{ currentIndexData.name }}</div>
-                      <div class="text-caption text-grey-7">Selected Index</div>
+                      <div class="text-h6 text-grey-9">{{ currentIndexData.name }}</div>
+                      <div class="text-caption text-grey-6">Selected Index</div>
                     </q-card-section>
                   </q-card>
                 </div>
 
                 <div v-if="currentIndexData.latestPCR" class="col-12 col-md-3">
-                  <q-card flat class="bg-green-1">
+                  <q-card flat class="dashboard-card" bordered>
                     <q-card-section class="text-center">
-                      <div class="text-h4">{{ currentIndexData.latestPCR.pcr }}</div>
-                      <div class="text-caption text-grey-7 q-mb-xs">Current PCR</div>
+                      <div class="text-h4 text-grey-9">{{ currentIndexData.latestPCR.pcr }}</div>
+                      <div class="text-caption text-grey-6 q-mb-xs">Current PCR</div>
                       <TrendIndicator
                         v-if="currentIndexData.latestPCR.trend !== 'neutral'"
                         :trend="currentIndexData.latestPCR.trend"
@@ -109,24 +109,25 @@
                 </div>
 
                 <div v-if="currentIndexData.latestPCR" class="col-12 col-md-3">
-                  <q-card flat :class="getOIDiffCardClass(currentIndexData.latestPCR.oiDiff)">
+                  <q-card flat class="dashboard-card" bordered>
                     <q-card-section class="text-center">
-                      <div class="text-h6">
+                      <div class="text-h6 text-grey-9">
                         <q-icon
                           :name="currentIndexData.latestPCR.oiDiff >= 0 ? 'trending_up' : 'trending_down'"
+                          :color="currentIndexData.latestPCR.oiDiff >= 0 ? 'positive' : 'negative'"
                         />
                         {{ formatNumber(Math.abs(currentIndexData.latestPCR.oiDiff)) }}
                       </div>
-                      <div class="text-caption text-grey-7">OI Change</div>
+                      <div class="text-caption text-grey-6">OI Change</div>
                     </q-card-section>
                   </q-card>
                 </div>
 
                 <div v-if="currentIndexData.latestPCR" class="col-12 col-md-3">
-                  <q-card flat :class="getIndicatorCardClass(currentIndexData.latestPCR.marketIndicator)">
+                  <q-card flat class="dashboard-card" bordered>
                     <q-card-section class="text-center">
-                      <div class="text-h6">{{ currentIndexData.latestPCR.marketIndicator.toUpperCase() }}</div>
-                      <div class="text-caption text-grey-7">Market Signal</div>
+                      <div class="text-h6 text-grey-9">{{ currentIndexData.latestPCR.marketIndicator.toUpperCase() }}</div>
+                      <div class="text-caption text-grey-6">Market Signal</div>
                     </q-card-section>
                   </q-card>
                 </div>
@@ -290,20 +291,28 @@ function getMarketStatusIcon(status: MarketStatus['currentStatus']): string {
 function formatNumber(num: number): string {
   return new Intl.NumberFormat('en-IN').format(num)
 }
-
-function getOIDiffCardClass(oiDiff: number): string {
-  return oiDiff >= 0 ? 'bg-green-1' : 'bg-red-1'
-}
-
-function getIndicatorCardClass(indicator: string): string {
-  if (indicator === 'bullish') return 'bg-green-1'
-  if (indicator === 'bearish') return 'bg-red-1'
-  return 'bg-grey-3'
-}
 </script>
 
 <style scoped>
 .pcr-dashboard {
   width: 100%;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.dashboard-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.expiry-banner {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
 }
 </style>
