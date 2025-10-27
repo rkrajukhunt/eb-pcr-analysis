@@ -8,8 +8,7 @@
       bordered
       :pagination="{ rowsPerPage: 10 }"
       :loading="loading"
-      class="pcr-table"
-    >
+      class="pcr-table">
       <template v-slot:top>
         <div class="full-width row items-center q-gutter-md">
           <div class="text-h6">Historical PCR Data</div>
@@ -20,8 +19,7 @@
             label="Refresh Data"
             @click="$emit('refresh')"
             :loading="loading"
-            unelevated
-          />
+            unelevated />
         </div>
       </template>
 
@@ -31,8 +29,7 @@
             <q-chip
               :color="getPCRColor(props.row.pcr)"
               text-color="white"
-              size="sm"
-            >
+              size="sm">
               {{ props.row.pcr?.toFixed(2) }}
             </q-chip>
             <TrendIndicator
@@ -41,8 +38,7 @@
               :change-percent="props.row.pcrChangePercent"
               :change="props.row.pcrChange"
               size="xs"
-              :show-value="true"
-            />
+              :show-value="true" />
           </div>
         </q-td>
       </template>
@@ -50,6 +46,16 @@
       <template v-slot:body-cell-callOI="props">
         <q-td :props="props">
           <div>{{ formatNumber(props.row.callOI) }}</div>
+        </q-td>
+      </template>
+      <template v-slot:body-cell-callPutTotalOI="props">
+        <q-td :props="props">
+          <div>{{ formatNumber(props.row.callPutTotalOI) }}</div>
+        </q-td>
+      </template>
+      <template v-slot:body-cell-totalOiDiff="props">
+        <q-td :props="props">
+          <div>{{ formatNumber(props.row.totalOiDiff) }}</div>
         </q-td>
       </template>
 
@@ -61,8 +67,7 @@
               :name="
                 props.row.callOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'
               "
-              size="xs"
-            />
+              size="xs" />
             {{ formatOIDiff(props.row.callOIDiff) }}
           </div>
         </q-td>
@@ -82,8 +87,7 @@
               :name="
                 props.row.putOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'
               "
-              size="xs"
-            />
+              size="xs" />
             {{ formatOIDiff(props.row.putOIDiff) }}
           </div>
         </q-td>
@@ -106,8 +110,7 @@
           <div :class="getDiffClass(props.row.oiDiff)">
             <q-icon
               :name="props.row.oiDiff >= 0 ? 'trending_up' : 'trending_down'"
-              size="sm"
-            />
+              size="sm" />
             {{ formatNumber(Math.abs(props.row.oiDiff)) }}
           </div>
         </q-td>
@@ -120,8 +123,7 @@
               :name="
                 props.row.volumeDiff >= 0 ? 'trending_up' : 'trending_down'
               "
-              size="sm"
-            />
+              size="sm" />
             {{ formatNumber(Math.abs(props.row.volumeDiff)) }}
           </div>
         </q-td>
@@ -132,8 +134,7 @@
           <q-chip
             :color="getIndicatorColor(props.row.marketIndicator)"
             text-color="white"
-            size="sm"
-          >
+            size="sm">
             {{ props.row.marketIndicator.toUpperCase() }}
           </q-chip>
         </q-td>
@@ -188,6 +189,20 @@ const columns = [
     name: "putOI",
     label: "Put OI",
     field: "putOI",
+    align: "right" as const,
+    sortable: true,
+  },
+  {
+    name: "callPutTotalOI",
+    label: "Total OI",
+    field: "callPutTotalOI",
+    align: "right" as const,
+    sortable: true,
+  },
+  {
+    name: "totalOiDiff",
+    label: "Total OI Diff",
+    field: "totalOiDiff",
     align: "right" as const,
     sortable: true,
   },
@@ -274,7 +289,7 @@ function formatNumber(num: number): string {
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
-  }).format(Math.round(num));
+  }).format(Math.round(num || 0));
 }
 
 function formatTime(timestamp: string): string {

@@ -93,14 +93,22 @@ export function generateMockPCRData(previousData?: PCRData): PCRData {
   // Calculate trend indicators
   const trendData = calculatePCRTrend(pcr, previousData?.pcr);
 
+  const totalOiDiff =
+    callOI +
+    putOI -
+    (((previousData?.callOI ?? 0) as number) +
+      ((previousData?.putOI ?? 0) as number));
+
   return {
     timestamp: new Date().toISOString(),
     callOI,
     putOI,
+    callPutTotalOI: Math.round(callOI + putOI),
     callVolume,
     putVolume,
     pcr,
     oiDiff,
+    totalOiDiff,
     volumeDiff,
     marketIndicator: getMarketIndicator(pcr, oiDiff),
     ...trendData,
@@ -167,23 +175,22 @@ function parseNSEData(
   const nextExpiry = expiryDates[1] || null;
 
   // NSE data structure: data.records.data contains array of option chain data
-  if (data.records && data.records.data) {
-    data.records.data.forEach((record: any) => {
-      // Each record has CE (Call) and PE (Put) data
-      if (record.CE) {
-        totalCallOI += record.CE.openInterest || 0;
-        totalCallVolume += record.CE.totalTradedVolume || 0;
-      }
-      if (record.PE) {
-        totalPutOI += record.PE.openInterest || 0;
-        totalPutVolume += record.PE.totalTradedVolume || 0;
-      }
-    });
+  if (data.filtered && data.filtered.data) {
+    totalCallOI = data.filtered.CE.totOI || 0;
+    totalPutOI = data.filtered.PE.totOI || 0;
+    totalCallVolume = data.filtered.CE.totVol || 0;
+    totalPutVolume = data.filtered.PE.totVol || 0;
   }
 
   const pcr = calculatePCR(totalPutOI, totalCallOI);
   const oiDiff = previousData
     ? totalCallOI + totalPutOI - (previousData.callOI + previousData.putOI)
+    : 0;
+
+  const callPutTotal = totalCallOI + totalPutOI;
+
+  const callPutTotalOIDiff = previousData
+    ? callPutTotal - previousData.callPutTotalOI
     : 0;
   const volumeDiff = previousData
     ? totalCallVolume +
@@ -199,6 +206,8 @@ function parseNSEData(
       timestamp: new Date().toISOString(),
       callOI: Math.round(totalCallOI),
       putOI: Math.round(totalPutOI),
+      callPutTotalOI: Math.round(callPutTotal + 5),
+      totalOiDiff: Math.round(callPutTotalOIDiff),
       callVolume: Math.round(totalCallVolume),
       putVolume: Math.round(totalPutVolume),
       pcr,
