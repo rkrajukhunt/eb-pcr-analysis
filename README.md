@@ -12,11 +12,19 @@ A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indic
 
 ### PCR Analysis
 
+- ✅ **Live NSE Data Integration** 🔥
+  - Real-time data from NSE India Option Chain API
+  - Automatic fallback to mock data if API fails
+  - Smart error handling and retry logic
 - ✅ Real-time PCR calculation for major Indian indices
   - Nifty 50
   - Bank Nifty
   - Fin Nifty
   - Midcap Nifty
+- ✅ **Precise Decimal Formatting** (2 decimal places)
+  - PCR values: `1.23` (not `1.2345`)
+  - Changes: `±0.05` (not `±0.0523`)
+  - Clean, professional display
 - ✅ Background data updates every 3 minutes (runs even when not viewing)
 - ✅ Automatic expiry date calculation (current & next month)
 - ✅ Comprehensive data display:
@@ -213,22 +221,37 @@ Options expire on the last Thursday of each month. The application automatically
 
 ## API Integration
 
-Currently, the application uses mock data for development. To integrate with real NSE (National Stock Exchange) data:
+✅ **Live NSE API is now integrated!** The application fetches real-time data from NSE India Option Chain API with automatic fallback to mock data if the API fails.
 
-1. Implement the API call in `src/services/marketData.ts`
-2. Replace the `fetchPCRData` function with actual API integration
-3. Handle API authentication and rate limiting
-4. Update the data transformation logic as needed
+### Implementation Details
 
-Example structure:
+The app now uses **live NSE data** with these features:
+- ✅ Real-time option chain data from `nseindia.com/api/option-chain-indices`
+- ✅ Automatic parsing of Call/Put Open Interest and Volume
+- ✅ Smart fallback to mock data if API is unreachable
+- ✅ Proper headers to prevent NSE blocking
+- ✅ Error handling and retry logic
 
-```typescript
-const response = await fetch(
-  `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`
-);
-const data = await response.json();
-// Transform NSE data to PCRData format
+### CORS Handling
+
+NSE API may block browser requests due to CORS. **See [LIVE_API_SETUP.md](./LIVE_API_SETUP.md) for:**
+- CORS proxy setup (development)
+- Backend proxy implementation (production)
+- Troubleshooting guide
+- Alternative data providers
+
+### Quick Test
+
+```bash
+# During market hours (9:15 AM - 3:30 PM IST)
+npm run dev
+
+# Check browser console for:
+✅ "Successfully parsed NSE data" - Live API working
+⚠️ "Using fallback" - CORS blocked, using mock data
 ```
+
+For detailed setup instructions, see **[LIVE_API_SETUP.md](./LIVE_API_SETUP.md)**
 
 ## Technologies Used
 

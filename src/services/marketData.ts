@@ -5,10 +5,11 @@ import { getExpiryDates } from '../utils/expiryCalculator'
 /**
  * Calculate PCR (Put-Call Ratio)
  * PCR = Put OI / Call OI
+ * Returns value with 2 decimal places
  */
 function calculatePCR(putOI: number, callOI: number): number {
   if (callOI === 0) return 0
-  return Number((putOI / callOI).toFixed(4))
+  return Number((putOI / callOI).toFixed(2))
 }
 
 /**
@@ -32,6 +33,7 @@ function getMarketIndicator(pcr: number, oiDiff: number): 'bullish' | 'bearish' 
 
 /**
  * Calculate PCR trend indicators
+ * Returns values with 2 decimal places for better readability
  */
 function calculatePCRTrend(currentPCR: number, previousPCR?: number) {
   if (!previousPCR) {
@@ -42,7 +44,7 @@ function calculatePCRTrend(currentPCR: number, previousPCR?: number) {
     }
   }
 
-  const pcrChange = Number((currentPCR - previousPCR).toFixed(4))
+  const pcrChange = Number((currentPCR - previousPCR).toFixed(2))
   const pcrChangePercent = previousPCR !== 0
     ? Number(((pcrChange / previousPCR) * 100).toFixed(2))
     : 0
@@ -95,20 +97,106 @@ function generateMockPCRData(previousData?: PCRData): PCRData {
 }
 
 /**
+ * Fetch live option chain data from NSE India
+ */
+async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
+  try {
+    // NSE requires specific headers to prevent blocking
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'application/json',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Referer': 'https://www.nseindia.com/option-chain'
+    }
+
+    const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers,
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      throw new Error(`NSE API error: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching NSE data:', error)
+    throw error
+  }
+}
+
+/**
+ * Parse NSE option chain data to calculate PCR
+ */
+function parseNSEData(data: any, previousData?: PCRData): PCRData {
+  let totalCallOI = 0
+  let totalPutOI = 0
+  let totalCallVolume = 0
+  let totalPutVolume = 0
+
+  // NSE data structure: data.records.data contains array of option chain data
+  if (data.records && data.records.data) {
+    data.records.data.forEach((record: any) => {
+      // Each record has CE (Call) and PE (Put) data
+      if (record.CE) {
+        totalCallOI += record.CE.openInterest || 0
+        totalCallVolume += record.CE.totalTradedVolume || 0
+      }
+      if (record.PE) {
+        totalPutOI += record.PE.openInterest || 0
+        totalPutVolume += record.PE.totalTradedVolume || 0
+      }
+    })
+  }
+
+  const pcr = calculatePCR(totalPutOI, totalCallOI)
+  const oiDiff = previousData
+    ? (totalCallOI + totalPutOI) - (previousData.callOI + previousData.putOI)
+    : 0
+  const volumeDiff = previousData
+    ? (totalCallVolume + totalPutVolume) - (previousData.callVolume + previousData.putVolume)
+    : 0
+
+  // Calculate trend indicators
+  const trendData = calculatePCRTrend(pcr, previousData?.pcr)
+
+  return {
+    timestamp: new Date().toISOString(),
+    callOI: totalCallOI,
+    putOI: totalPutOI,
+    callVolume: totalCallVolume,
+    putVolume: totalPutVolume,
+    pcr,
+    oiDiff,
+    volumeDiff,
+    marketIndicator: getMarketIndicator(pcr, oiDiff),
+    ...trendData
+  }
+}
+
+/**
  * Fetch PCR data for a specific index
- * TODO: Replace with real API integration
+ * Uses live NSE API with fallback to mock data
  */
 export async function fetchPCRData(
-  _symbol: IndexSymbol,
+  symbol: IndexSymbol,
   previousData?: PCRData
 ): Promise<PCRData> {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500))
+  try {
+    // Try to fetch live data from NSE
+    const nseData = await fetchNSEOptionChain(symbol)
+    return parseNSEData(nseData, previousData)
+  } catch (error) {
+    console.warn('Failed to fetch live NSE data, using fallback:', error)
 
-  // TODO: Replace with actual NSE API call
-  // Example: const response = await fetch(`https://www.nseindia.com/api/option-chain-indices?symbol=${_symbol}`)
-
-  return generateMockPCRData(previousData)
+    // Fallback to mock data if API fails
+    // This ensures the app continues working even if NSE API is down
+    await new Promise(resolve => setTimeout(resolve, 500))
+    return generateMockPCRData(previousData)
+  }
 }
 
 /**

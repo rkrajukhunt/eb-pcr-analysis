@@ -33,7 +33,7 @@
               text-color="white"
               size="sm"
             >
-              {{ props.row.pcr }}
+              {{ props.row.pcr.toFixed(2) }}
             </q-chip>
             <TrendIndicator
               v-if="props.row.trend !== 'neutral'"
