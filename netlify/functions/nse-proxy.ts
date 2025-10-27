@@ -1,21 +1,48 @@
 import type { Handler } from "@netlify/functions";
-// import fetch from "node-fetch";
 
 export const handler: Handler = async (event) => {
   const symbol = event.queryStringParameters?.symbol || "NIFTY";
-  const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
 
   try {
+    // Step 1: Get cookies first
+    const cookieResponse = await fetch("https://www.nseindia.com", {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
+      },
+    });
+
+    const cookies = cookieResponse.headers.get("set-cookie");
+
+    // Step 2: Fetch actual data
+    const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
+
     const response = await fetch(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         Accept: "application/json",
         Referer: "https://www.nseindia.com/option-chain",
+        Cookie: cookies || "",
       },
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // NSE returned HTML (bot protection)
+      return {
+        statusCode: 502,
+        body: JSON.stringify({
+          error: "NSE blocked the request. Try again later.",
+          htmlSnippet: text.slice(0, 100),
+        }),
+      };
+    }
 
     return {
       statusCode: 200,
