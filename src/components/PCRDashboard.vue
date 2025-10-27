@@ -61,11 +61,25 @@
           </div>
         </div>
 
-        <q-banner v-if="error" class="bg-negative text-white q-mb-md" rounded>
+        <!-- Error Banner with Dismiss -->
+        <q-banner
+          v-if="error"
+          class="bg-orange-9 text-white q-mb-md"
+          rounded
+        >
           <template v-slot:avatar>
-            <q-icon name="error" />
+            <q-icon name="warning" />
           </template>
-          {{ error }}
+          <div>
+            <div class="text-weight-bold">API Fetch Failed</div>
+            <div class="text-caption">{{ error }}</div>
+            <div class="text-caption q-mt-xs">
+              The app will continue to show existing data and retry on the next scheduled interval.
+            </div>
+          </div>
+          <template v-slot:action>
+            <q-btn flat color="white" label="Dismiss" @click="clearError" />
+          </template>
         </q-banner>
 
         <div v-if="currentIndexData" class="q-mb-md">
@@ -218,6 +232,7 @@ const {
   isUsingCachedData,
   getCurrentIndexData,
   refresh,
+  clearError,
   availableIndices
 } = usePCRAnalysis()
 

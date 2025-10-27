@@ -4,7 +4,6 @@ import type { MarketStatus } from '../types/marketSchedule'
 import { AVAILABLE_INDICES } from '../services/marketData'
 import { getMarketStatus } from '../services/marketSchedule'
 import {
-  subscribeToPCRData,
   getInitialPCRData,
   getLastTradingSessionData,
   subscribeToAllIndices
@@ -178,7 +177,7 @@ export function usePCRFirestore() {
    * Check if market is currently open
    */
   const isMarketOpen = computed(() => {
-    return marketStatus.value?.currentStatus === 'open'
+    return marketStatus.value?.currentStatus === 'trading'
   })
 
   /**

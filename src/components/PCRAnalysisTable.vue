@@ -53,9 +53,35 @@
         </q-td>
       </template>
 
+      <template v-slot:body-cell-callOIDiff="props">
+        <q-td :props="props">
+          <div :class="getOIDiffClass(props.row.callOIDiff)">
+            <q-icon
+              v-if="props.row.callOIDiff !== 0"
+              :name="props.row.callOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'"
+              size="xs"
+            />
+            {{ formatOIDiff(props.row.callOIDiff) }}
+          </div>
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-putOI="props">
         <q-td :props="props">
           <div>{{ formatNumber(props.row.putOI) }}</div>
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-putOIDiff="props">
+        <q-td :props="props">
+          <div :class="getOIDiffClass(props.row.putOIDiff)">
+            <q-icon
+              v-if="props.row.putOIDiff !== 0"
+              :name="props.row.putOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'"
+              size="xs"
+            />
+            {{ formatOIDiff(props.row.putOIDiff) }}
+          </div>
         </q-td>
       </template>
 
@@ -153,9 +179,23 @@ const columns = [
     sortable: true
   },
   {
+    name: 'callOIDiff',
+    label: 'Call OI Diff',
+    field: 'callOIDiff',
+    align: 'right' as const,
+    sortable: true
+  },
+  {
     name: 'putOI',
     label: 'Put OI',
     field: 'putOI',
+    align: 'right' as const,
+    sortable: true
+  },
+  {
+    name: 'putOIDiff',
+    label: 'Put OI Diff',
+    field: 'putOIDiff',
     align: 'right' as const,
     sortable: true
   },
@@ -204,7 +244,22 @@ const columns = [
 ]
 
 const rows = computed(() => {
-  return [...props.data].reverse() // Show latest first
+  const reversedData = [...props.data].reverse() // Show latest first
+
+  // Get first row (oldest data) as baseline for comparison
+  const firstRow = props.data[0]
+
+  // Calculate OI differences from first row
+  return reversedData.map(row => {
+    const callOIDiff = firstRow ? row.callOI - firstRow.callOI : 0
+    const putOIDiff = firstRow ? row.putOI - firstRow.putOI : 0
+
+    return {
+      ...row,
+      callOIDiff,
+      putOIDiff
+    }
+  })
 })
 
 function formatNumber(num: number): string {
@@ -215,9 +270,20 @@ function formatTime(timestamp: string): string {
   const date = new Date(timestamp)
   return date.toLocaleTimeString('en-IN', {
     hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
+    minute: '2-digit'
   })
+}
+
+function formatOIDiff(diff: number): string {
+  if (diff === 0) return '0'
+  const sign = diff > 0 ? '+' : ''
+  return sign + formatNumber(Math.abs(diff))
+}
+
+function getOIDiffClass(diff: number): string {
+  if (diff > 0) return 'text-green text-weight-bold'
+  if (diff < 0) return 'text-red text-weight-bold'
+  return 'text-grey'
 }
 
 function getPCRColor(pcr: number): string {
