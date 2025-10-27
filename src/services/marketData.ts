@@ -122,7 +122,8 @@ async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
     };
 
     // const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
-    const url = `/nseapi/api/option-chain-indices?symbol=${symbol}`; // Using proxy defined in vite.config.ts
+    // const url = `/nseapi/api/option-chain-indices?symbol=${symbol}`; // Using proxy defined in vite.config.ts
+    const url = `/.netlify/functions/nse-proxy?symbol=${symbol}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -145,7 +146,10 @@ async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
  * Parse NSE option chain data to calculate PCR
  * Returns PCR data along with expiry dates and spot price from API
  */
-function parseNSEData(data: any, previousData?: PCRData): {
+function parseNSEData(
+  data: any,
+  previousData?: PCRData
+): {
   pcrData: PCRData;
   spotPrice: number | null;
   currentExpiry: string | null;
@@ -233,11 +237,15 @@ export async function fetchPCRData(
       symbol,
       timestamp: new Date().toISOString(),
       error: error instanceof Error ? error.message : String(error),
-      previousDataExists: !!previousData
+      previousDataExists: !!previousData,
     });
 
     // Re-throw the error - do not use dummy data
-    throw new Error(`Failed to fetch PCR data for ${symbol}: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Failed to fetch PCR data for ${symbol}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
 }
 
