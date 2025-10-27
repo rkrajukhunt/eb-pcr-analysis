@@ -71,12 +71,18 @@ export function usePCRAnalysis() {
           const currentData = indices.value.get(symbol)
           const previousPCR = currentData?.latestPCR || undefined
 
-          // Attempt to fetch PCR data
-          const newPCRData = await fetchPCRData(symbol, previousPCR)
+          // Attempt to fetch PCR data with metadata
+          const result = await fetchPCRData(symbol, previousPCR)
 
           // Only update if fetch succeeded
           if (currentData) {
-            const updatedData = updateIndexData(currentData, newPCRData)
+            const updatedData = updateIndexData(
+              currentData,
+              result.pcrData,
+              result.spotPrice,
+              result.currentExpiry,
+              result.nextExpiry
+            )
             indices.value.set(symbol, updatedData)
             successCount++
             console.log(`✅ Successfully fetched data for ${symbol}`)

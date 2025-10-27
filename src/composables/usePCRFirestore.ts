@@ -65,6 +65,7 @@ export function usePCRFirestore() {
             const indexData = {
               symbol,
               name: getIndexName(symbol),
+              spotPrice: null,
               currentExpiry: '',
               nextExpiry: '',
               pcrHistory: [lastSession],

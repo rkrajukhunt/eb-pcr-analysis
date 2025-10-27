@@ -42,8 +42,9 @@ export function subscribeToPCRData(
           const indexData: IndexData = {
             symbol,
             name: getIndexName(symbol),
-            currentExpiry: expiry.current,
-            nextExpiry: expiry.next,
+            spotPrice: data.spotPrice || null,
+            currentExpiry: data.currentExpiry || expiry.current,
+            nextExpiry: data.nextExpiry || expiry.next,
             pcrHistory: records,
             latestPCR: data.latestData as PCRData
           }
@@ -102,8 +103,9 @@ export async function getInitialPCRData(symbol: IndexSymbol): Promise<IndexData 
     return {
       symbol,
       name: getIndexName(symbol),
-      currentExpiry: expiry.current,
-      nextExpiry: expiry.next,
+      spotPrice: data.spotPrice || null,
+      currentExpiry: data.currentExpiry || expiry.current,
+      nextExpiry: data.nextExpiry || expiry.next,
       pcrHistory: records,
       latestPCR: data.latestData as PCRData || null
     }

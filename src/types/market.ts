@@ -16,6 +16,7 @@ export interface PCRData {
 export interface IndexData {
   symbol: string
   name: string
+  spotPrice: number | null
   currentExpiry: string
   nextExpiry: string
   pcrHistory: PCRData[]

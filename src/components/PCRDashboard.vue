@@ -90,7 +90,10 @@
                   <q-card flat class="dashboard-card" bordered>
                     <q-card-section class="text-center">
                       <div class="text-h6 text-grey-9">{{ currentIndexData.name }}</div>
-                      <div class="text-caption text-grey-6">Selected Index</div>
+                      <div v-if="currentIndexData.spotPrice" class="text-h4 text-primary q-mt-sm">
+                        {{ formatNumber(currentIndexData.spotPrice) }}
+                      </div>
+                      <div class="text-caption text-grey-6">{{ currentIndexData.spotPrice ? 'Spot Price' : 'Selected Index' }}</div>
                     </q-card-section>
                   </q-card>
                 </div>

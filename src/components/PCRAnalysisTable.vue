@@ -33,7 +33,7 @@
               text-color="white"
               size="sm"
             >
-              {{ props.row.pcr.toFixed(2) }}
+              {{ props.row.pcr?.toFixed(2) }}
             </q-chip>
             <TrendIndicator
               v-if="props.row.trend !== 'neutral'"
@@ -252,13 +252,14 @@ const columns = [
 const rows = computed(() => {
   const reversedData = [...props.data].reverse(); // Show latest first
 
-  // Get first row (oldest data) as baseline for comparison
-  const firstRow = props.data[0];
+  // Calculate OI differences: compare each row with its previous row (second-latest)
+  return reversedData.map((row, index) => {
+    // For the first row (latest), compare with second row
+    // For other rows, compare with the next row in reversedData
+    const previousRow = reversedData[index + 1];
 
-  // Calculate OI differences from first row
-  return reversedData.map((row) => {
-    const callOIDiff = firstRow ? row.callOI - firstRow.callOI : 0;
-    const putOIDiff = firstRow ? row.putOI - firstRow.putOI : 0;
+    const callOIDiff = previousRow ? row.callOI - previousRow.callOI : 0;
+    const putOIDiff = previousRow ? row.putOI - previousRow.putOI : 0;
 
     return {
       ...row,
@@ -269,7 +270,11 @@ const rows = computed(() => {
 });
 
 function formatNumber(num: number): string {
-  return new Intl.NumberFormat("en-IN").format(num);
+  // Format as whole number (no decimals) for OI and Volume
+  return new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(Math.round(num));
 }
 
 function formatTime(timestamp: string): string {
@@ -283,6 +288,7 @@ function formatTime(timestamp: string): string {
 function formatOIDiff(diff: number): string {
   if (diff === 0) return "0";
   const sign = diff > 0 ? "+" : "";
+  // Format as whole number (no decimals)
   return sign + formatNumber(Math.abs(diff));
 }
 

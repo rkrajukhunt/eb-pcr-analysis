@@ -143,12 +143,24 @@ async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
 
 /**
  * Parse NSE option chain data to calculate PCR
+ * Returns PCR data along with expiry dates and spot price from API
  */
-function parseNSEData(data: any, previousData?: PCRData): PCRData {
+function parseNSEData(data: any, previousData?: PCRData): {
+  pcrData: PCRData;
+  spotPrice: number | null;
+  currentExpiry: string | null;
+  nextExpiry: string | null;
+} {
   let totalCallOI = 0;
   let totalPutOI = 0;
   let totalCallVolume = 0;
   let totalPutVolume = 0;
+
+  // Extract metadata from API response
+  const spotPrice = data.records?.underlyingValue || null;
+  const expiryDates = data.records?.expiryDates || [];
+  const currentExpiry = expiryDates[0] || null;
+  const nextExpiry = expiryDates[1] || null;
 
   // NSE data structure: data.records.data contains array of option chain data
   if (data.records && data.records.data) {
@@ -179,27 +191,38 @@ function parseNSEData(data: any, previousData?: PCRData): PCRData {
   const trendData = calculatePCRTrend(pcr, previousData?.pcr);
 
   return {
-    timestamp: new Date().toISOString(),
-    callOI: totalCallOI,
-    putOI: totalPutOI,
-    callVolume: totalCallVolume,
-    putVolume: totalPutVolume,
-    pcr,
-    oiDiff,
-    volumeDiff,
-    marketIndicator: getMarketIndicator(pcr, oiDiff),
-    ...trendData,
+    pcrData: {
+      timestamp: new Date().toISOString(),
+      callOI: Math.round(totalCallOI),
+      putOI: Math.round(totalPutOI),
+      callVolume: Math.round(totalCallVolume),
+      putVolume: Math.round(totalPutVolume),
+      pcr,
+      oiDiff: Math.round(oiDiff),
+      volumeDiff: Math.round(volumeDiff),
+      marketIndicator: getMarketIndicator(pcr, oiDiff),
+      ...trendData,
+    },
+    spotPrice,
+    currentExpiry,
+    nextExpiry,
   };
 }
 
 /**
  * Fetch PCR data for a specific index
  * Throws error if API fails - no dummy data fallback
+ * Returns PCR data along with expiry dates and spot price from API
  */
 export async function fetchPCRData(
   symbol: IndexSymbol,
   previousData?: PCRData
-): Promise<PCRData> {
+): Promise<{
+  pcrData: PCRData;
+  spotPrice: number | null;
+  currentExpiry: string | null;
+  nextExpiry: string | null;
+}> {
   try {
     // Try to fetch live data from NSE
     const nseData = await fetchNSEOptionChain(symbol);
@@ -240,6 +263,7 @@ export function initializeIndexData(symbol: IndexSymbol): IndexData {
   return {
     symbol,
     name: getIndexName(symbol),
+    spotPrice: null,
     currentExpiry: expiry.current,
     nextExpiry: expiry.next,
     pcrHistory: [],
@@ -248,11 +272,14 @@ export function initializeIndexData(symbol: IndexSymbol): IndexData {
 }
 
 /**
- * Update index data with new PCR data
+ * Update index data with new PCR data, expiry dates, and spot price
  */
 export function updateIndexData(
   indexData: IndexData,
-  newPCRData: PCRData
+  newPCRData: PCRData,
+  spotPrice?: number | null,
+  currentExpiry?: string | null,
+  nextExpiry?: string | null
 ): IndexData {
   const updatedHistory = [...indexData.pcrHistory, newPCRData];
 
@@ -263,6 +290,9 @@ export function updateIndexData(
 
   return {
     ...indexData,
+    spotPrice: spotPrice !== undefined ? spotPrice : indexData.spotPrice,
+    currentExpiry: currentExpiry || indexData.currentExpiry,
+    nextExpiry: nextExpiry || indexData.nextExpiry,
     pcrHistory: updatedHistory,
     latestPCR: newPCRData,
   };
