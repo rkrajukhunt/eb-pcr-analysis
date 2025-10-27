@@ -183,7 +183,6 @@
             </q-card-section>
           </q-card>
         </div>
-        {{ currentIndexData && currentIndexData.latestPCR }}
         <div v-if="currentIndexData && currentIndexData.pcrHistory.length > 0">
           <PCRAnalysisTable
             :data="currentIndexData.pcrHistory"
