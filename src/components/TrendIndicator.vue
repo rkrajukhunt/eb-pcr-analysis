@@ -65,12 +65,12 @@ function formatChange(): string {
 
   if (props.change !== undefined && props.change !== 0) {
     const sign = props.change > 0 ? '+' : ''
-    parts.push(`${sign}${props.change.toFixed(2)}`)
+    parts.push(`${sign}${props.change?.toFixed(2)}`)
   }
 
   if (props.showPercent && props.changePercent !== 0) {
     const sign = props.changePercent > 0 ? '+' : ''
-    parts.push(`(${sign}${props.changePercent.toFixed(2)}%)`)
+    parts.push(`(${sign}${props.changePercent?.toFixed(2)}%)`)
   }
 
   return parts.join(' ')
