@@ -80,7 +80,7 @@ export function loadIndicesData(): Map<IndexSymbol, IndexData> | null {
 }
 
 /**
- * Clear all stored data
+ * Clear all stored data from localStorage
  */
 export function clearStoredData(): void {
   try {
@@ -92,6 +92,38 @@ export function clearStoredData(): void {
     })
   } catch (error) {
     console.error('Failed to clear stored data:', error)
+  }
+}
+
+/**
+ * Clear all local cache data (localStorage + browser cache)
+ * Does NOT affect Firebase data
+ */
+export async function clearAllLocalData(): Promise<{ success: boolean; message: string }> {
+  try {
+    // Clear localStorage
+    clearStoredData()
+
+    // Clear all browser caches (if available)
+    if ('caches' in window) {
+      const cacheNames = await caches.keys()
+      await Promise.all(
+        cacheNames.map(cacheName => caches.delete(cacheName))
+      )
+      console.log('✅ Cleared browser caches:', cacheNames.length)
+    }
+
+    console.log('✅ Cleared all local data (localStorage + cache)')
+    return {
+      success: true,
+      message: 'Local data and cache cleared successfully'
+    }
+  } catch (error) {
+    console.error('❌ Failed to clear local data:', error)
+    return {
+      success: false,
+      message: 'Failed to clear some data'
+    }
   }
 }
 

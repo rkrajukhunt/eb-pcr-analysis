@@ -89,6 +89,26 @@
 
               <q-separator />
 
+              <!-- Clear Data Button -->
+              <q-item
+                clickable
+                v-close-popup
+                @click="handleClearData"
+                class="clear-data-item"
+              >
+                <q-item-section avatar>
+                  <q-icon name="delete_sweep" color="orange" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-orange">Clear Local Data</q-item-label>
+                  <q-item-label caption class="text-grey-6">
+                    Clear cache and localStorage
+                  </q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-separator />
+
               <!-- Logout Button -->
               <q-item
                 clickable
@@ -116,7 +136,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { currentUser, signOut } from "../services/auth";
-import { Notify, copyToClipboard } from "quasar";
+import { clearAllLocalData } from "../services/storageService";
+import { Notify, copyToClipboard, Dialog } from "quasar";
 
 interface Props {
   isMarketOpen?: boolean;
@@ -153,6 +174,61 @@ const copyUserId = () => {
         });
       });
   }
+};
+
+const handleClearData = () => {
+  Dialog.create({
+    title: "Clear Local Data",
+    message:
+      "This will clear all cached data and localStorage. Firebase data will NOT be affected. The page will reload after clearing. Continue?",
+    cancel: {
+      label: "Cancel",
+      color: "grey-7",
+      flat: true,
+    },
+    ok: {
+      label: "Clear Data",
+      color: "orange",
+      unelevated: true,
+    },
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true;
+
+    try {
+      const result = await clearAllLocalData();
+
+      if (result.success) {
+        Notify.create({
+          type: "positive",
+          message: "Local data cleared successfully! Reloading...",
+          position: "top",
+          timeout: 2000,
+        });
+
+        // Reload page after a short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        Notify.create({
+          type: "warning",
+          message: result.message,
+          position: "top",
+          timeout: 3000,
+        });
+        loading.value = false;
+      }
+    } catch (error) {
+      Notify.create({
+        type: "negative",
+        message: "Failed to clear local data",
+        position: "top",
+        timeout: 3000,
+      });
+      loading.value = false;
+    }
+  });
 };
 
 const handleSignOut = async () => {
@@ -283,6 +359,16 @@ const handleSignOut = async () => {
   background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   border-radius: 8px;
   margin-bottom: 8px;
+}
+
+.clear-data-item {
+  border-radius: 6px;
+  margin-top: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-data-item:hover {
+  background: #fff7ed;
 }
 
 .logout-item {

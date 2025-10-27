@@ -9,7 +9,7 @@ import { getExpiryDates } from "../utils/expiryCalculator";
  */
 function calculatePCR(putOI: number, callOI: number): number {
   if (callOI === 0) return 0;
-  return Number((putOI / callOI).toFixed(2));
+  return Number((putOI / callOI)?.toFixed(2));
 }
 
 /**
@@ -50,7 +50,7 @@ function calculatePCRTrend(currentPCR: number, previousPCR?: number) {
   const pcrChange = Number((currentPCR - previousPCR).toFixed(2));
   const pcrChangePercent =
     previousPCR !== 0
-      ? Number(((pcrChange / previousPCR) * 100).toFixed(2))
+      ? Number(((pcrChange / previousPCR) * 100)?.toFixed(2))
       : 0;
 
   let trend: "up" | "down" | "neutral";
