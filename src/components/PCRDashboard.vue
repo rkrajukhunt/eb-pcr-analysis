@@ -84,7 +84,7 @@
                 <div v-if="currentIndexData.latestPCR" class="col-12 col-md-3">
                   <q-card flat class="dashboard-card" bordered>
                     <q-card-section class="text-center">
-                      <div class="text-h4 text-grey-9">{{ currentIndexData.latestPCR.pcr }}</div>
+                      <div class="text-h4 text-grey-9">{{ currentIndexData.latestPCR.pcr.toFixed(2) }}</div>
                       <div class="text-caption text-grey-6 q-mb-xs">Current PCR</div>
                       <TrendIndicator
                         v-if="currentIndexData.latestPCR.trend !== 'neutral'"
