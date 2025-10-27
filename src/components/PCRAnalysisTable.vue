@@ -58,7 +58,9 @@
           <div :class="getOIDiffClass(props.row.callOIDiff)">
             <q-icon
               v-if="props.row.callOIDiff !== 0"
-              :name="props.row.callOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'"
+              :name="
+                props.row.callOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'
+              "
               size="xs"
             />
             {{ formatOIDiff(props.row.callOIDiff) }}
@@ -77,7 +79,9 @@
           <div :class="getOIDiffClass(props.row.putOIDiff)">
             <q-icon
               v-if="props.row.putOIDiff !== 0"
-              :name="props.row.putOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'"
+              :name="
+                props.row.putOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'
+              "
               size="xs"
             />
             {{ formatOIDiff(props.row.putOIDiff) }}
@@ -113,7 +117,9 @@
         <q-td :props="props">
           <div :class="getDiffClass(props.row.volumeDiff)">
             <q-icon
-              :name="props.row.volumeDiff >= 0 ? 'trending_up' : 'trending_down'"
+              :name="
+                props.row.volumeDiff >= 0 ? 'trending_up' : 'trending_down'
+              "
               size="sm"
             />
             {{ formatNumber(Math.abs(props.row.volumeDiff)) }}
@@ -143,165 +149,165 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { PCRData } from '../types/market'
-import TrendIndicator from './TrendIndicator.vue'
+import { computed } from "vue";
+import type { PCRData } from "../types/market";
+import TrendIndicator from "./TrendIndicator.vue";
 
 interface Props {
-  data: PCRData[]
-  indexName: string
-  currentExpiry: string
-  nextExpiry: string
-  loading?: boolean
+  data: PCRData[];
+  indexName: string;
+  currentExpiry: string;
+  nextExpiry: string;
+  loading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
-})
+  loading: false,
+});
 
 defineEmits<{
-  refresh: []
-}>()
+  refresh: [];
+}>();
 
 const columns = [
   {
-    name: 'timestamp',
-    label: 'Time',
-    field: 'timestamp',
-    align: 'left' as const,
-    sortable: true
+    name: "timestamp",
+    label: "Time",
+    field: "timestamp",
+    align: "left" as const,
+    sortable: true,
   },
   {
-    name: 'callOI',
-    label: 'Call OI',
-    field: 'callOI',
-    align: 'right' as const,
-    sortable: true
+    name: "callOI",
+    label: "Call OI",
+    field: "callOI",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'callOIDiff',
-    label: 'Call OI Diff',
-    field: 'callOIDiff',
-    align: 'right' as const,
-    sortable: true
+    name: "putOI",
+    label: "Put OI",
+    field: "putOI",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'putOI',
-    label: 'Put OI',
-    field: 'putOI',
-    align: 'right' as const,
-    sortable: true
+    name: "callVolume",
+    label: "Call Volume",
+    field: "callVolume",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'putOIDiff',
-    label: 'Put OI Diff',
-    field: 'putOIDiff',
-    align: 'right' as const,
-    sortable: true
+    name: "putVolume",
+    label: "Put Volume",
+    field: "putVolume",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'callVolume',
-    label: 'Call Volume',
-    field: 'callVolume',
-    align: 'right' as const,
-    sortable: true
+    name: "pcr",
+    label: "PCR",
+    field: "pcr",
+    align: "center" as const,
+    sortable: true,
   },
   {
-    name: 'putVolume',
-    label: 'Put Volume',
-    field: 'putVolume',
-    align: 'right' as const,
-    sortable: true
+    name: "callOIDiff",
+    label: "Call OI Change",
+    field: "callOIDiff",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'pcr',
-    label: 'PCR',
-    field: 'pcr',
-    align: 'center' as const,
-    sortable: true
+    name: "putOIDiff",
+    label: "Put OI Change",
+    field: "putOIDiff",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'oiDiff',
-    label: 'OI Change',
-    field: 'oiDiff',
-    align: 'right' as const,
-    sortable: true
+    name: "oiDiff",
+    label: "OI Change",
+    field: "oiDiff",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'volumeDiff',
-    label: 'Volume Change',
-    field: 'volumeDiff',
-    align: 'right' as const,
-    sortable: true
+    name: "volumeDiff",
+    label: "Volume Change",
+    field: "volumeDiff",
+    align: "right" as const,
+    sortable: true,
   },
   {
-    name: 'marketIndicator',
-    label: 'Signal',
-    field: 'marketIndicator',
-    align: 'center' as const,
-    sortable: true
-  }
-]
+    name: "marketIndicator",
+    label: "Signal",
+    field: "marketIndicator",
+    align: "center" as const,
+    sortable: true,
+  },
+];
 
 const rows = computed(() => {
-  const reversedData = [...props.data].reverse() // Show latest first
+  const reversedData = [...props.data].reverse(); // Show latest first
 
   // Get first row (oldest data) as baseline for comparison
-  const firstRow = props.data[0]
+  const firstRow = props.data[0];
 
   // Calculate OI differences from first row
-  return reversedData.map(row => {
-    const callOIDiff = firstRow ? row.callOI - firstRow.callOI : 0
-    const putOIDiff = firstRow ? row.putOI - firstRow.putOI : 0
+  return reversedData.map((row) => {
+    const callOIDiff = firstRow ? row.callOI - firstRow.callOI : 0;
+    const putOIDiff = firstRow ? row.putOI - firstRow.putOI : 0;
 
     return {
       ...row,
       callOIDiff,
-      putOIDiff
-    }
-  })
-})
+      putOIDiff,
+    };
+  });
+});
 
 function formatNumber(num: number): string {
-  return new Intl.NumberFormat('en-IN').format(num)
+  return new Intl.NumberFormat("en-IN").format(num);
 }
 
 function formatTime(timestamp: string): string {
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function formatOIDiff(diff: number): string {
-  if (diff === 0) return '0'
-  const sign = diff > 0 ? '+' : ''
-  return sign + formatNumber(Math.abs(diff))
+  if (diff === 0) return "0";
+  const sign = diff > 0 ? "+" : "";
+  return sign + formatNumber(Math.abs(diff));
 }
 
 function getOIDiffClass(diff: number): string {
-  if (diff > 0) return 'text-green text-weight-bold'
-  if (diff < 0) return 'text-red text-weight-bold'
-  return 'text-grey'
+  if (diff > 0) return "text-green text-weight-bold";
+  if (diff < 0) return "text-red text-weight-bold";
+  return "text-grey";
 }
 
 function getPCRColor(pcr: number): string {
-  if (pcr >= 1.2) return 'green'
-  if (pcr <= 0.8) return 'red'
-  return 'orange'
+  if (pcr >= 1.2) return "green";
+  if (pcr <= 0.8) return "red";
+  return "orange";
 }
 
 function getIndicatorColor(indicator: string): string {
-  if (indicator === 'bullish') return 'green'
-  if (indicator === 'bearish') return 'red'
-  return 'grey'
+  if (indicator === "bullish") return "green";
+  if (indicator === "bearish") return "red";
+  return "grey";
 }
 
 function getDiffClass(diff: number): string {
-  if (diff > 0) return 'text-green text-weight-bold'
-  if (diff < 0) return 'text-red text-weight-bold'
-  return 'text-grey'
+  if (diff > 0) return "text-green text-weight-bold";
+  if (diff < 0) return "text-red text-weight-bold";
+  return "text-grey";
 }
 </script>
 
