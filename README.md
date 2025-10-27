@@ -1,6 +1,17 @@
 # PCR Analysis
 
-A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indices. Built with Vue 3, Quasar, TypeScript, and Firebase.
+A fully automated real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indices. Built with Vue 3, Quasar, TypeScript, Firebase Cloud Functions, and Firestore.
+
+## 🚀 New: Automated Backend System
+
+**Firebase Cloud Functions** now handle all data fetching automatically:
+- ✅ Runs every 3 minutes from 9:15 AM to 3:30 PM IST
+- ✅ Works regardless of whether users are online
+- ✅ Stores data in Cloud Firestore for real-time updates
+- ✅ Automatic weekend cleanup (keeps 7 days of data)
+- ✅ Zero client-side burden - just subscribe to updates
+
+**[Quick Start Guide](./QUICK_START.md)** | **[Full Backend Setup](./FIREBASE_BACKEND_SETUP.md)** | **[Deployment Guide](./DEPLOYMENT.md)**
 
 ## Features
 
@@ -9,6 +20,24 @@ A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indic
 - ✅ Firebase Google Authentication
 - ✅ Secure user login/logout
 - ✅ Session management
+
+### Automated Backend (Firebase Cloud Functions) 🔥
+
+- ✅ **Scheduled Auto-Fetch**
+  - Runs at 9:15 AM IST (market open)
+  - Continues every 3 minutes until 3:30 PM IST
+  - Saves last trading session at 3:35 PM
+  - Weekend cleanup every Sunday midnight
+- ✅ **Cloud Firestore Database**
+  - Real-time data synchronization
+  - Stores 7 days of historical data
+  - Automatic cleanup of old records
+  - Works offline with cached data
+- ✅ **Zero Client Load**
+  - Backend handles all API calls
+  - Clients just subscribe to Firestore
+  - Works even when users are offline
+  - Battery-friendly on mobile
 
 ### PCR Analysis
 
@@ -25,7 +54,7 @@ A real-time PCR (Put-Call Ratio) analysis platform for Indian stock market indic
   - PCR values: `1.23` (not `1.2345`)
   - Changes: `±0.05` (not `±0.0523`)
   - Clean, professional display
-- ✅ Background data updates every 3 minutes (runs even when not viewing)
+- ✅ Real-time updates via Firestore (no polling needed)
 - ✅ Automatic expiry date calculation (current & next month)
 - ✅ Comprehensive data display:
   - Call & Put Open Interest (OI)

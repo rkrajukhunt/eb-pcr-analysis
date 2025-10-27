@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // PCR Data Collection - Read-only for authenticated users
+    match /pcr_data/{indexSymbol} {
+      // Allow authenticated users to read index data
+      allow read: if request.auth != null;
+
+      // Only Cloud Functions can write
+      allow write: if false;
+
+      // Records subcollection
+      match /records/{recordId} {
+        // Allow authenticated users to read historical records
+        allow read: if request.auth != null;
+
+        // Only Cloud Functions can write
+        allow write: if false;
+      }
+    }
+
+    // User profiles (if needed in future)
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
