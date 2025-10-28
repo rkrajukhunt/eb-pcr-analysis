@@ -187,6 +187,13 @@ const columns = [
     sortable: true,
   },
   {
+    name: "callPutTotalOI",
+    label: "Total OI",
+    field: "callPutTotalOI",
+    align: "right" as const,
+    sortable: true,
+  },
+  {
     name: "callOI",
     label: "Call OI",
     field: "callOI",
@@ -200,16 +207,10 @@ const columns = [
     align: "right" as const,
     sortable: true,
   },
-  {
-    name: "callPutTotalOI",
-    label: "Total OI",
-    field: "callPutTotalOI",
-    align: "right" as const,
-    sortable: true,
-  },
+
   {
     name: "totalOiDiff",
-    label: "Total OI Diff",
+    label: "Total OI Change",
     field: "totalOiDiff",
     align: "right" as const,
     sortable: true,
