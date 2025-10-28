@@ -55,7 +55,15 @@
       </template>
       <template v-slot:body-cell-totalOiDiff="props">
         <q-td :props="props">
-          <div>{{ formatNumber(props.row.totalOiDiff) }}</div>
+          <div :class="getOIDiffClass(props.row.putOIDiff)">
+            <q-icon
+              v-if="props.row.putOIDiff !== 0"
+              :name="
+                props.row.putOIDiff > 0 ? 'arrow_upward' : 'arrow_downward'
+              "
+              size="xs" />
+            {{ formatOIDiff(props.row.totalOiDiff) }}
+          </div>
         </q-td>
       </template>
 
