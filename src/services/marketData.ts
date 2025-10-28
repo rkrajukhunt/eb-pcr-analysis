@@ -321,6 +321,6 @@ export function updateIndexData(
 export const AVAILABLE_INDICES: IndexSymbol[] = [
   "NIFTY",
   "BANKNIFTY",
-  "FINNIFTY",
-  "MIDCPNIFTY",
+  // "FINNIFTY",
+  // "MIDCPNIFTY",
 ];
