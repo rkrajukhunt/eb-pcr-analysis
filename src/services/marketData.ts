@@ -206,7 +206,7 @@ function parseNSEData(
       timestamp: new Date().toISOString(),
       callOI: Math.round(totalCallOI),
       putOI: Math.round(totalPutOI),
-      callPutTotalOI: Math.round(callPutTotal + 5),
+      callPutTotalOI: Math.round(callPutTotal),
       totalOiDiff: Math.round(callPutTotalOIDiff),
       callVolume: Math.round(totalCallVolume),
       putVolume: Math.round(totalPutVolume),

@@ -135,7 +135,7 @@
             :color="getIndicatorColor(props.row.marketIndicator)"
             text-color="white"
             size="sm">
-            {{ props.row.marketIndicator.toUpperCase() }}
+            {{ props.row.marketIndicator?.toUpperCase() }}
           </q-chip>
         </q-td>
       </template>
@@ -273,8 +273,8 @@ const rows = computed(() => {
     // For other rows, compare with the next row in reversedData
     const previousRow = reversedData[index + 1];
 
-    const callOIDiff = previousRow ? row.callOI - previousRow.callOI : 0;
-    const putOIDiff = previousRow ? row.putOI - previousRow.putOI : 0;
+    const callOIDiff = previousRow ? row?.callOI - previousRow?.callOI : 0;
+    const putOIDiff = previousRow ? row?.putOI - previousRow?.putOI : 0;
 
     return {
       ...row,
