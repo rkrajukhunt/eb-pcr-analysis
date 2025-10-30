@@ -5,8 +5,7 @@
       v-if="marketStatus"
       :class="getMarketStatusBannerClass(marketStatus.currentStatus)"
       class="q-mb-md"
-      rounded
-    >
+      rounded>
       <template v-slot:avatar>
         <q-icon :name="getMarketStatusIcon(marketStatus.currentStatus)" />
       </template>
@@ -14,14 +13,12 @@
         <div class="text-weight-bold">{{ marketStatusMessage }}</div>
         <div
           v-if="isUsingCachedData && formattedLastSessionDate"
-          class="text-caption"
-        >
+          class="text-caption">
           Last trading session: {{ formattedLastSessionDate }}
         </div>
         <div
           v-if="nextTradingSession && !marketStatus.isOpen"
-          class="text-caption"
-        >
+          class="text-caption">
           Next trading session: {{ formatTradingSession(nextTradingSession) }}
         </div>
         <div v-if="marketStatus.holidayInfo" class="text-caption q-mt-xs">
@@ -44,8 +41,7 @@
         <div class="q-mb-md">
           <IndexSelector
             v-model="selectedIndex"
-            :available-indices="availableIndices"
-          />
+            :available-indices="availableIndices" />
         </div>
 
         <!-- Expiry Information Banner -->
@@ -99,8 +95,7 @@
                       </div>
                       <div
                         v-if="currentIndexData.spotPrice"
-                        class="text-h4 text-primary q-mt-sm"
-                      >
+                        class="text-h4 text-primary q-mt-sm">
                         {{ formatNumber(currentIndexData.spotPrice) }}
                       </div>
                       <div class="text-caption text-grey-6">
@@ -131,8 +126,7 @@
                         "
                         :change="currentIndexData.latestPCR.pcrChange"
                         size="sm"
-                        :show-value="true"
-                      />
+                        :show-value="true" />
                       <div v-else class="text-caption text-grey-6">
                         No change
                       </div>
@@ -154,8 +148,7 @@
                             currentIndexData.latestPCR.oiDiff >= 0
                               ? 'positive'
                               : 'negative'
-                          "
-                        />
+                          " />
                         {{
                           formatNumber(
                             Math.abs(currentIndexData.latestPCR.oiDiff)
@@ -183,6 +176,8 @@
             </q-card-section>
           </q-card>
         </div>
+        <button :onclick="handleRefresh">temp</button>
+
         <div v-if="currentIndexData && currentIndexData.pcrHistory.length > 0">
           <PCRAnalysisTable
             :data="currentIndexData.pcrHistory"
@@ -190,8 +185,7 @@
             :current-expiry="currentIndexData.currentExpiry"
             :next-expiry="currentIndexData.nextExpiry"
             :loading="isLoading"
-            @refresh="handleRefresh"
-          />
+            @refresh="handleRefresh" />
         </div>
 
         <div v-else-if="!isLoading" class="text-center q-pa-lg">
@@ -206,8 +200,7 @@
             isLoading &&
             (!currentIndexData || currentIndexData.pcrHistory.length === 0)
           "
-          class="text-center q-pa-lg"
-        >
+          class="text-center q-pa-lg">
           <q-spinner color="primary" size="48px" />
           <div class="text-grey-7 q-mt-md">Loading PCR data...</div>
         </div>

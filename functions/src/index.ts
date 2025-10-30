@@ -1,424 +1,500 @@
-import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import axios from 'axios';
+import { getAngelToken } from "./getAccessToken";
+// import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+// import axios from "axios";
+// import { authenticator } from "otplib";
+
+export { getAngelToken };
 
 // Initialize Firebase Admin
 admin.initializeApp();
-const db = admin.firestore();
+// const db = admin.firestore();
 
 // Types
-interface PCRData {
-  timestamp: string;
-  callOI: number;
-  putOI: number;
-  callVolume: number;
-  putVolume: number;
-  pcr: number;
-  oiDiff: number;
-  volumeDiff: number;
-  marketIndicator: 'bullish' | 'bearish' | 'neutral';
-  pcrChange: number;
-  pcrChangePercent: number;
-  trend: 'up' | 'down' | 'neutral';
-}
+// interface PCRData {
+//   timestamp: string;
+//   callOI: number;
+//   putOI: number;
+//   callVolume: number;
+//   putVolume: number;
+//   pcr: number;
+//   oiDiff: number;
+//   volumeDiff: number;
+//   marketIndicator: "bullish" | "bearish" | "neutral";
+//   pcrChange: number;
+//   pcrChangePercent: number;
+//   trend: "up" | "down" | "neutral";
+// }
 
-type IndexSymbol = 'NIFTY' | 'BANKNIFTY' | 'FINNIFTY' | 'MIDCPNIFTY';
+// type IndexSymbol = "NIFTY" | "BANKNIFTY" | "FINNIFTY" | "MIDCPNIFTY";
 
-const INDICES: IndexSymbol[] = ['NIFTY', 'BANKNIFTY', 'FINNIFTY', 'MIDCPNIFTY'];
+// const INDICES: IndexSymbol[] = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"];
 
-/**
- * Calculate PCR (Put-Call Ratio) with 2 decimal places
- */
-function calculatePCR(putOI: number, callOI: number): number {
-  if (callOI === 0) return 0;
-  return Number((putOI / callOI)?.toFixed(2));
-}
+// // Base URL for Angel API
+// const ANGEL_BASE_URL = "https://apiconnect.angelbroking.com";
 
-/**
- * Get market indicator based on PCR
- */
-function getMarketIndicator(pcr: number, oiDiff: number): 'bullish' | 'bearish' | 'neutral' {
-  const pcrBullishThreshold = 1.2;
-  const pcrBearishThreshold = 0.8;
+// // Config stored securely (but NOT the rotating TOTP)
+// const ANGEL_API_KEY = "YT37cNi5";
+// const ANGEL_CLIENT_CODE = "N57703821";
+// const ANGEL_PASSWORD = "2580";
 
-  if (pcr >= pcrBullishThreshold && oiDiff > 0) {
-    return 'bullish';
-  } else if (pcr <= pcrBearishThreshold && oiDiff < 0) {
-    return 'bearish';
-  } else if (pcr > pcrBullishThreshold) {
-    return 'bullish';
-  } else if (pcr < pcrBearishThreshold) {
-    return 'bearish';
-  }
+// // Permanent TOTP secret from your Angel One account
+// const ANGEL_TOTP_SECRET = "U74O5VOIGPHX7Y5V27UUU3EMMA"; // base32 secret key
 
-  return 'neutral';
-}
+// export const getAngelToken = functions.https.onCall(async (_, context) => {
+//   try {
+//     // 🔹 1. Generate dynamic TOTP using secret
+//     const currentTotp = authenticator.generate(ANGEL_TOTP_SECRET);
 
-/**
- * Calculate PCR trend indicators
- */
-function calculatePCRTrend(currentPCR: number, previousPCR?: number) {
-  if (!previousPCR) {
-    return {
-      pcrChange: 0,
-      pcrChangePercent: 0,
-      trend: 'neutral' as const
-    };
-  }
+//     // 🔹 2. Login request
+//     const res = await axios.post(
+//       `${ANGEL_BASE_URL}/rest/auth/angelbroking/user/v1/loginByPassword`,
+//       {
+//         clientcode: ANGEL_CLIENT_CODE,
+//         password: ANGEL_PASSWORD,
+//         // totp: currentTotp,
+//       },
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//           // "X-UserType": "USER",
+//           // "X-SourceID": "WEB",
+//           // "X-ClientLocalIP": "127.0.0.1",
+//           // "X-ClientPublicIP": "127.0.0.1",
+//           // "X-MACAddress": "00:00:00:00:00:00",
+//           "X-PrivateKey": ANGEL_API_KEY,
+//           "Accept": "application/json",
+//         },
+//       }
+//     );
 
-  const pcrChange = Number((currentPCR - previousPCR)?.toFixed(2));
-  const pcrChangePercent = previousPCR !== 0
-    ? Number(((pcrChange / previousPCR) * 100)?.toFixed(2))
-    : 0;
+//     if (!res.data.status) throw new Error(res.data.message);
+//     const token = res.data.data.jwtToken;
 
-  let trend: 'up' | 'down' | 'neutral';
-  if (Math.abs(pcrChangePercent) < 0.5) {
-    trend = 'neutral';
-  } else if (pcrChange > 0) {
-    trend = 'up';
-  } else {
-    trend = 'down';
-  }
+//     // 🔹 3. Return the generated token
+//     return { token };
+//   } catch (error: any) {
+//     console.error("Angel Token Error:", error.response?.data || error.message);
+//     throw new functions.https.HttpsError("internal", error.message);
+//   }
+// });
 
-  return { pcrChange, pcrChangePercent, trend };
-}
+// /**
+//  * Calculate PCR (Put-Call Ratio) with 2 decimal places
+//  */
+// function calculatePCR(putOI: number, callOI: number): number {
+//   if (callOI === 0) return 0;
+//   return Number((putOI / callOI)?.toFixed(2));
+// }
 
-/**
- * Fetch live NSE option chain data
- */
-async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
-  try {
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'application/json',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Referer': 'https://www.nseindia.com/option-chain'
-    };
+// /**
+//  * Get market indicator based on PCR
+//  */
+// function getMarketIndicator(
+//   pcr: number,
+//   oiDiff: number
+// ): "bullish" | "bearish" | "neutral" {
+//   const pcrBullishThreshold = 1.2;
+//   const pcrBearishThreshold = 0.8;
 
-    const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
+//   if (pcr >= pcrBullishThreshold && oiDiff > 0) {
+//     return "bullish";
+//   } else if (pcr <= pcrBearishThreshold && oiDiff < 0) {
+//     return "bearish";
+//   } else if (pcr > pcrBullishThreshold) {
+//     return "bullish";
+//   } else if (pcr < pcrBearishThreshold) {
+//     return "bearish";
+//   }
 
-    const response = await axios.get(url, { headers });
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching NSE data for ${symbol}:`, error);
-    throw error;
-  }
-}
+//   return "neutral";
+// }
 
-/**
- * Parse NSE data and calculate PCR
- */
-function parseNSEData(data: any, previousData?: PCRData): PCRData {
-  let totalCallOI = 0;
-  let totalPutOI = 0;
-  let totalCallVolume = 0;
-  let totalPutVolume = 0;
+// /**
+//  * Calculate PCR trend indicators
+//  */
+// function calculatePCRTrend(currentPCR: number, previousPCR?: number) {
+//   if (!previousPCR) {
+//     return {
+//       pcrChange: 0,
+//       pcrChangePercent: 0,
+//       trend: "neutral" as const,
+//     };
+//   }
 
-  if (data.records && data.records.data) {
-    data.records.data.forEach((record: any) => {
-      if (record.CE) {
-        totalCallOI += record.CE.openInterest || 0;
-        totalCallVolume += record.CE.totalTradedVolume || 0;
-      }
-      if (record.PE) {
-        totalPutOI += record.PE.openInterest || 0;
-        totalPutVolume += record.PE.totalTradedVolume || 0;
-      }
-    });
-  }
+//   const pcrChange = Number((currentPCR - previousPCR)?.toFixed(2));
+//   const pcrChangePercent =
+//     previousPCR !== 0
+//       ? Number(((pcrChange / previousPCR) * 100)?.toFixed(2))
+//       : 0;
 
-  const pcr = calculatePCR(totalPutOI, totalCallOI);
-  const oiDiff = previousData
-    ? (totalCallOI + totalPutOI) - (previousData.callOI + previousData.putOI)
-    : 0;
-  const volumeDiff = previousData
-    ? (totalCallVolume + totalPutVolume) - (previousData.callVolume + previousData.putVolume)
-    : 0;
+//   let trend: "up" | "down" | "neutral";
+//   if (Math.abs(pcrChangePercent) < 0.5) {
+//     trend = "neutral";
+//   } else if (pcrChange > 0) {
+//     trend = "up";
+//   } else {
+//     trend = "down";
+//   }
 
-  const trendData = calculatePCRTrend(pcr, previousData?.pcr);
+//   return { pcrChange, pcrChangePercent, trend };
+// }
 
-  return {
-    timestamp: new Date().toISOString(),
-    callOI: totalCallOI,
-    putOI: totalPutOI,
-    callVolume: totalCallVolume,
-    putVolume: totalPutVolume,
-    pcr,
-    oiDiff,
-    volumeDiff,
-    marketIndicator: getMarketIndicator(pcr, oiDiff),
-    ...trendData
-  };
-}
+// /**
+//  * Fetch live NSE option chain data
+//  */
+// async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
+//   try {
+//     const headers = {
+//       "User-Agent":
+//         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+//       Accept: "application/json",
+//       "Accept-Language": "en-US,en;q=0.9",
+//       Referer: "https://www.nseindia.com/option-chain",
+//     };
 
-/**
- * Generate mock data as fallback
- */
-function generateMockPCRData(previousData?: PCRData): PCRData {
-  const baseCallOI = previousData ? previousData.callOI : 50000000;
-  const basePutOI = previousData ? previousData.putOI : 55000000;
+//     const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
 
-  const callOI = Math.round(baseCallOI + (Math.random() - 0.5) * 2000000);
-  const putOI = Math.round(basePutOI + (Math.random() - 0.5) * 2000000);
-  const callVolume = Math.round(5000000 + Math.random() * 1000000);
-  const putVolume = Math.round(6000000 + Math.random() * 1000000);
+//     const response = await axios.get(url, { headers });
+//     return response.data;
+//   } catch (error) {
+//     console.error(`Error fetching NSE data for ${symbol}:`, error);
+//     throw error;
+//   }
+// }
 
-  const pcr = calculatePCR(putOI, callOI);
-  const oiDiff = previousData ? (callOI + putOI) - (previousData.callOI + previousData.putOI) : 0;
-  const volumeDiff = previousData ? (callVolume + putVolume) - (previousData.callVolume + previousData.putVolume) : 0;
+// /**
+//  * Parse NSE data and calculate PCR
+//  */
+// function parseNSEData(data: any, previousData?: PCRData): PCRData {
+//   let totalCallOI = 0;
+//   let totalPutOI = 0;
+//   let totalCallVolume = 0;
+//   let totalPutVolume = 0;
 
-  const trendData = calculatePCRTrend(pcr, previousData?.pcr);
+//   if (data.records && data.records.data) {
+//     data.records.data.forEach((record: any) => {
+//       if (record.CE) {
+//         totalCallOI += record.CE.openInterest || 0;
+//         totalCallVolume += record.CE.totalTradedVolume || 0;
+//       }
+//       if (record.PE) {
+//         totalPutOI += record.PE.openInterest || 0;
+//         totalPutVolume += record.PE.totalTradedVolume || 0;
+//       }
+//     });
+//   }
 
-  return {
-    timestamp: new Date().toISOString(),
-    callOI,
-    putOI,
-    callVolume,
-    putVolume,
-    pcr,
-    oiDiff,
-    volumeDiff,
-    marketIndicator: getMarketIndicator(pcr, oiDiff),
-    ...trendData
-  };
-}
+//   const pcr = calculatePCR(totalPutOI, totalCallOI);
+//   const oiDiff = previousData
+//     ? totalCallOI + totalPutOI - (previousData.callOI + previousData.putOI)
+//     : 0;
+//   const volumeDiff = previousData
+//     ? totalCallVolume +
+//       totalPutVolume -
+//       (previousData.callVolume + previousData.putVolume)
+//     : 0;
 
-/**
- * Get latest PCR data for an index from Firestore
- */
-async function getLatestPCRData(symbol: IndexSymbol): Promise<PCRData | undefined> {
-  try {
-    const snapshot = await db.collection('pcr_data')
-      .doc(symbol)
-      .collection('records')
-      .orderBy('timestamp', 'desc')
-      .limit(1)
-      .get();
+//   const trendData = calculatePCRTrend(pcr, previousData?.pcr);
 
-    if (snapshot.empty) {
-      return undefined;
-    }
+//   return {
+//     timestamp: new Date().toISOString(),
+//     callOI: totalCallOI,
+//     putOI: totalPutOI,
+//     callVolume: totalCallVolume,
+//     putVolume: totalPutVolume,
+//     pcr,
+//     oiDiff,
+//     volumeDiff,
+//     marketIndicator: getMarketIndicator(pcr, oiDiff),
+//     ...trendData,
+//   };
+// }
 
-    return snapshot.docs[0].data() as PCRData;
-  } catch (error) {
-    console.error(`Error getting latest PCR data for ${symbol}:`, error);
-    return undefined;
-  }
-}
+// /**
+//  * Generate mock data as fallback
+//  */
+// function generateMockPCRData(previousData?: PCRData): PCRData {
+//   const baseCallOI = previousData ? previousData.callOI : 50000000;
+//   const basePutOI = previousData ? previousData.putOI : 55000000;
 
-/**
- * Save PCR data to Firestore
- */
-async function savePCRData(symbol: IndexSymbol, data: PCRData): Promise<void> {
-  try {
-    const docRef = db.collection('pcr_data')
-      .doc(symbol)
-      .collection('records')
-      .doc();
+//   const callOI = Math.round(baseCallOI + (Math.random() - 0.5) * 2000000);
+//   const putOI = Math.round(basePutOI + (Math.random() - 0.5) * 2000000);
+//   const callVolume = Math.round(5000000 + Math.random() * 1000000);
+//   const putVolume = Math.round(6000000 + Math.random() * 1000000);
 
-    await docRef.set(data);
+//   const pcr = calculatePCR(putOI, callOI);
+//   const oiDiff = previousData
+//     ? callOI + putOI - (previousData.callOI + previousData.putOI)
+//     : 0;
+//   const volumeDiff = previousData
+//     ? callVolume +
+//       putVolume -
+//       (previousData.callVolume + previousData.putVolume)
+//     : 0;
 
-    // Update latest data reference
-    await db.collection('pcr_data').doc(symbol).set({
-      latestData: data,
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+//   const trendData = calculatePCRTrend(pcr, previousData?.pcr);
 
-    console.log(`Saved PCR data for ${symbol} at ${data.timestamp}`);
-  } catch (error) {
-    console.error(`Error saving PCR data for ${symbol}:`, error);
-    throw error;
-  }
-}
+//   return {
+//     timestamp: new Date().toISOString(),
+//     callOI,
+//     putOI,
+//     callVolume,
+//     putVolume,
+//     pcr,
+//     oiDiff,
+//     volumeDiff,
+//     marketIndicator: getMarketIndicator(pcr, oiDiff),
+//     ...trendData,
+//   };
+// }
 
-/**
- * Fetch and save PCR data for a single index
- */
-async function fetchAndSaveIndex(symbol: IndexSymbol): Promise<void> {
-  try {
-    const previousData = await getLatestPCRData(symbol);
+// /**
+//  * Get latest PCR data for an index from Firestore
+//  */
+// async function getLatestPCRData(
+//   symbol: IndexSymbol
+// ): Promise<PCRData | undefined> {
+//   try {
+//     const snapshot = await db
+//       .collection("pcr_data")
+//       .doc(symbol)
+//       .collection("records")
+//       .orderBy("timestamp", "desc")
+//       .limit(1)
+//       .get();
 
-    let pcrData: PCRData;
-    try {
-      const nseData = await fetchNSEOptionChain(symbol);
-      pcrData = parseNSEData(nseData, previousData);
-      console.log(`✅ Fetched live NSE data for ${symbol}`);
-    } catch (error) {
-      console.warn(`⚠️ Failed to fetch live data for ${symbol}, using mock data`);
-      pcrData = generateMockPCRData(previousData);
-    }
+//     if (snapshot.empty) {
+//       return undefined;
+//     }
 
-    await savePCRData(symbol, pcrData);
-  } catch (error) {
-    console.error(`Error processing ${symbol}:`, error);
-  }
-}
+//     return snapshot.docs[0].data() as PCRData;
+//   } catch (error) {
+//     console.error(`Error getting latest PCR data for ${symbol}:`, error);
+//     return undefined;
+//   }
+// }
 
-/**
- * Check if current time is within market hours (9:15 AM - 3:30 PM IST)
- */
-function isMarketHours(): boolean {
-  const now = new Date();
+// /**
+//  * Save PCR data to Firestore
+//  */
+// async function savePCRData(symbol: IndexSymbol, data: PCRData): Promise<void> {
+//   try {
+//     const docRef = db
+//       .collection("pcr_data")
+//       .doc(symbol)
+//       .collection("records")
+//       .doc();
 
-  // Convert to IST (UTC+5:30)
-  const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+//     await docRef.set(data);
 
-  const day = istTime.getDay(); // 0 = Sunday, 6 = Saturday
-  if (day === 0 || day === 6) {
-    return false; // Weekend
-  }
+//     // Update latest data reference
+//     await db.collection("pcr_data").doc(symbol).set(
+//       {
+//         latestData: data,
+//         lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+//       },
+//       { merge: true }
+//     );
 
-  const hours = istTime.getHours();
-  const minutes = istTime.getMinutes();
-  const currentMinutes = hours * 60 + minutes;
+//     console.log(`Saved PCR data for ${symbol} at ${data.timestamp}`);
+//   } catch (error) {
+//     console.error(`Error saving PCR data for ${symbol}:`, error);
+//     throw error;
+//   }
+// }
 
-  const marketOpen = 9 * 60 + 15;  // 9:15 AM
-  const marketClose = 15 * 60 + 30; // 3:30 PM
+// /**
+//  * Fetch and save PCR data for a single index
+//  */
+// async function fetchAndSaveIndex(symbol: IndexSymbol): Promise<void> {
+//   try {
+//     const previousData = await getLatestPCRData(symbol);
 
-  return currentMinutes >= marketOpen && currentMinutes <= marketClose;
-}
+//     let pcrData: PCRData;
+//     try {
+//       const nseData = await fetchNSEOptionChain(symbol);
+//       pcrData = parseNSEData(nseData, previousData);
+//       console.log(`✅ Fetched live NSE data for ${symbol}`);
+//     } catch (error) {
+//       console.warn(
+//         `⚠️ Failed to fetch live data for ${symbol}, using mock data`
+//       );
+//       pcrData = generateMockPCRData(previousData);
+//     }
 
-/**
- * Cloud Function: Fetch PCR data every 3 minutes during market hours
- * Runs: Every 3 minutes, 9:15 AM - 3:30 PM IST, Monday-Friday
- */
-export const fetchPCRData = functions
-  .region('asia-south1') // Mumbai region for better latency
-  .pubsub
-  .schedule('*/3 9-15 * * 1-5') // Every 3 minutes, 9-15 hours, Mon-Fri
-  .timeZone('Asia/Kolkata')
-  .onRun(async (context) => {
-    console.log('⏰ Scheduled PCR data fetch triggered');
+//     await savePCRData(symbol, pcrData);
+//   } catch (error) {
+//     console.error(`Error processing ${symbol}:`, error);
+//   }
+// }
 
-    // Double-check market hours
-    if (!isMarketHours()) {
-      console.log('⏸️ Market is closed, skipping data fetch');
-      return null;
-    }
+// /**
+//  * Check if current time is within market hours (9:15 AM - 3:30 PM IST)
+//  */
+// function isMarketHours(): boolean {
+//   const now = new Date();
 
-    console.log('📊 Market is open, fetching PCR data for all indices...');
+//   // Convert to IST (UTC+5:30)
+//   const istTime = new Date(
+//     now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+//   );
 
-    // Fetch data for all indices in parallel
-    const promises = INDICES.map(symbol => fetchAndSaveIndex(symbol));
-    await Promise.allSettled(promises);
+//   const day = istTime.getDay(); // 0 = Sunday, 6 = Saturday
+//   if (day === 0 || day === 6) {
+//     return false; // Weekend
+//   }
 
-    console.log('✅ PCR data fetch completed for all indices');
-    return null;
-  });
+//   const hours = istTime.getHours();
+//   const minutes = istTime.getMinutes();
+//   const currentMinutes = hours * 60 + minutes;
 
-/**
- * Cloud Function: Initial market open fetch at 9:15 AM
- */
-export const marketOpenFetch = functions
-  .region('asia-south1')
-  .pubsub
-  .schedule('15 9 * * 1-5') // 9:15 AM, Mon-Fri
-  .timeZone('Asia/Kolkata')
-  .onRun(async (context) => {
-    console.log('🔔 Market open! Starting initial PCR data fetch...');
+//   const marketOpen = 9 * 60 + 15; // 9:15 AM
+//   const marketClose = 15 * 60 + 30; // 3:30 PM
 
-    const promises = INDICES.map(symbol => fetchAndSaveIndex(symbol));
-    await Promise.allSettled(promises);
+//   return currentMinutes >= marketOpen && currentMinutes <= marketClose;
+// }
 
-    console.log('✅ Initial market open data fetch completed');
-    return null;
-  });
+// /**
+//  * Cloud Function: Fetch PCR data every 3 minutes during market hours
+//  * Runs: Every 3 minutes, 9:15 AM - 3:30 PM IST, Monday-Friday
+//  */
+// export const fetchPCRData = functions
+//   .region("asia-south1") // Mumbai region for better latency
+//   .pubsub.schedule("*/3 9-15 * * 1-5") // Every 3 minutes, 9-15 hours, Mon-Fri
+//   .timeZone("Asia/Kolkata")
+//   .onRun(async (context) => {
+//     console.log("⏰ Scheduled PCR data fetch triggered");
 
-/**
- * Cloud Function: Cleanup old data on weekends
- * Keeps only last 7 days of data + last trading session
- * Runs: Every Sunday at 12:00 AM IST
- */
-export const cleanupOldData = functions
-  .region('asia-south1')
-  .pubsub
-  .schedule('0 0 * * 0') // Sunday at midnight
-  .timeZone('Asia/Kolkata')
-  .onRun(async (context) => {
-    console.log('🧹 Starting weekend data cleanup...');
+//     // Double-check market hours
+//     if (!isMarketHours()) {
+//       console.log("⏸️ Market is closed, skipping data fetch");
+//       return null;
+//     }
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+//     console.log("📊 Market is open, fetching PCR data for all indices...");
 
-    for (const symbol of INDICES) {
-      try {
-        // Get all records older than 7 days
-        const oldRecords = await db.collection('pcr_data')
-          .doc(symbol)
-          .collection('records')
-          .where('timestamp', '<', sevenDaysAgo.toISOString())
-          .get();
+//     // Fetch data for all indices in parallel
+//     const promises = INDICES.map((symbol) => fetchAndSaveIndex(symbol));
+//     await Promise.allSettled(promises);
 
-        if (oldRecords.empty) {
-          console.log(`No old records to delete for ${symbol}`);
-          continue;
-        }
+//     console.log("✅ PCR data fetch completed for all indices");
+//     return null;
+//   });
 
-        // Delete in batches
-        const batch = db.batch();
-        oldRecords.docs.forEach(doc => {
-          batch.delete(doc.ref);
-        });
+// /**
+//  * Cloud Function: Initial market open fetch at 9:15 AM
+//  */
+// export const marketOpenFetch = functions
+//   .region("asia-south1")
+//   .pubsub.schedule("15 9 * * 1-5") // 9:15 AM, Mon-Fri
+//   .timeZone("Asia/Kolkata")
+//   .onRun(async (context) => {
+//     console.log("🔔 Market open! Starting initial PCR data fetch...");
 
-        await batch.commit();
-        console.log(`✅ Deleted ${oldRecords.size} old records for ${symbol}`);
-      } catch (error) {
-        console.error(`Error cleaning up ${symbol}:`, error);
-      }
-    }
+//     const promises = INDICES.map((symbol) => fetchAndSaveIndex(symbol));
+//     await Promise.allSettled(promises);
 
-    console.log('✅ Weekend cleanup completed');
-    return null;
-  });
+//     console.log("✅ Initial market open data fetch completed");
+//     return null;
+//   });
 
-/**
- * Cloud Function: Save last trading session data
- * Runs: Every weekday at 3:35 PM IST (5 minutes after market close)
- */
-export const saveLastTradingSession = functions
-  .region('asia-south1')
-  .pubsub
-  .schedule('35 15 * * 1-5') // 3:35 PM, Mon-Fri
-  .timeZone('Asia/Kolkata')
-  .onRun(async (context) => {
-    console.log('💾 Saving last trading session data...');
+// /**
+//  * Cloud Function: Cleanup old data on weekends
+//  * Keeps only last 7 days of data + last trading session
+//  * Runs: Every Sunday at 12:00 AM IST
+//  */
+// export const cleanupOldData = functions
+//   .region("asia-south1")
+//   .pubsub.schedule("0 0 * * 0") // Sunday at midnight
+//   .timeZone("Asia/Kolkata")
+//   .onRun(async (context) => {
+//     console.log("🧹 Starting weekend data cleanup...");
 
-    for (const symbol of INDICES) {
-      try {
-        const latestData = await getLatestPCRData(symbol);
+//     const sevenDaysAgo = new Date();
+//     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        if (latestData) {
-          await db.collection('pcr_data').doc(symbol).set({
-            lastTradingSession: latestData,
-            lastTradingDate: new Date().toISOString()
-          }, { merge: true });
+//     for (const symbol of INDICES) {
+//       try {
+//         // Get all records older than 7 days
+//         const oldRecords = await db
+//           .collection("pcr_data")
+//           .doc(symbol)
+//           .collection("records")
+//           .where("timestamp", "<", sevenDaysAgo.toISOString())
+//           .get();
 
-          console.log(`✅ Saved last trading session for ${symbol}`);
-        }
-      } catch (error) {
-        console.error(`Error saving last session for ${symbol}:`, error);
-      }
-    }
+//         if (oldRecords.empty) {
+//           console.log(`No old records to delete for ${symbol}`);
+//           continue;
+//         }
 
-    console.log('✅ Last trading session saved for all indices');
-    return null;
-  });
+//         // Delete in batches
+//         const batch = db.batch();
+//         oldRecords.docs.forEach((doc) => {
+//           batch.delete(doc.ref);
+//         });
 
-/**
- * HTTP Cloud Function: Manual trigger for testing
- */
-export const triggerPCRFetch = functions
-  .region('asia-south1')
-  .https
-  .onRequest(async (req, res) => {
-    console.log('🔧 Manual PCR fetch triggered');
+//         await batch.commit();
+//         console.log(`✅ Deleted ${oldRecords.size} old records for ${symbol}`);
+//       } catch (error) {
+//         console.error(`Error cleaning up ${symbol}:`, error);
+//       }
+//     }
 
-    const promises = INDICES.map(symbol => fetchAndSaveIndex(symbol));
-    await Promise.allSettled(promises);
+//     console.log("✅ Weekend cleanup completed");
+//     return null;
+//   });
 
-    res.json({
-      success: true,
-      message: 'PCR data fetch completed',
-      timestamp: new Date().toISOString()
-    });
-  });
+// /**
+//  * Cloud Function: Save last trading session data
+//  * Runs: Every weekday at 3:35 PM IST (5 minutes after market close)
+//  */
+// export const saveLastTradingSession = functions
+//   .region("asia-south1")
+//   .pubsub.schedule("35 15 * * 1-5") // 3:35 PM, Mon-Fri
+//   .timeZone("Asia/Kolkata")
+//   .onRun(async (context) => {
+//     console.log("💾 Saving last trading session data...");
+
+//     for (const symbol of INDICES) {
+//       try {
+//         const latestData = await getLatestPCRData(symbol);
+
+//         if (latestData) {
+//           await db.collection("pcr_data").doc(symbol).set(
+//             {
+//               lastTradingSession: latestData,
+//               lastTradingDate: new Date().toISOString(),
+//             },
+//             { merge: true }
+//           );
+
+//           console.log(`✅ Saved last trading session for ${symbol}`);
+//         }
+//       } catch (error) {
+//         console.error(`Error saving last session for ${symbol}:`, error);
+//       }
+//     }
+
+//     console.log("✅ Last trading session saved for all indices");
+//     return null;
+//   });
+
+// /**
+//  * HTTP Cloud Function: Manual trigger for testing
+//  */
+// export const triggerPCRFetch = functions
+//   .region("asia-south1")
+//   .https.onRequest(async (req, res) => {
+//     console.log("🔧 Manual PCR fetch triggered");
+
+//     const promises = INDICES.map((symbol) => fetchAndSaveIndex(symbol));
+//     await Promise.allSettled(promises);
+
+//     res.json({
+//       success: true,
+//       message: "PCR data fetch completed",
+//       timestamp: new Date().toISOString(),
+//     });
+//   });
