@@ -1,18 +1,19 @@
-import { createApp } from 'vue'
-import { Quasar, Notify } from 'quasar'
-import '@quasar/extras/material-icons/material-icons.css'
-import 'quasar/dist/quasar.css'
-import App from './App.vue'
+import { createApp } from "vue";
+import { Quasar, Dialog, Notify } from "quasar";
+import "@quasar/extras/material-icons/material-icons.css";
+import "quasar/dist/quasar.css";
+import App from "./App.vue";
 
-const app = createApp(App)
+const app = createApp(App);
 
 app.use(Quasar, {
   plugins: {
-    Notify
+    Dialog,
+    Notify,
   },
   config: {
-    notify: {}
-  }
-})
+    notify: {},
+  },
+});
 
-app.mount('#app')
+app.mount("#app");
