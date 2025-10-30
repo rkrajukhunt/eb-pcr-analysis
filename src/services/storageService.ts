@@ -120,13 +120,13 @@ export async function clearAllLocalData(): Promise<{
     clearStoredData();
 
     // Clear all browser caches (if available)
-    if ("caches" in window) {
-      const cacheNames = await caches.keys();
-      await Promise.all(
-        cacheNames.map((cacheName) => caches.delete(cacheName))
-      );
-      console.log("✅ Cleared browser caches:", cacheNames.length);
-    }
+    // if ("caches" in window) {
+    //   const cacheNames = await caches.keys();
+    //   await Promise.all(
+    //     cacheNames.map((cacheName) => caches.delete(cacheName))
+    //   );
+    //   console.log("✅ Cleared browser caches:", cacheNames.length);
+    // }
 
     console.log("✅ Cleared all local data (localStorage + cache)");
     return {

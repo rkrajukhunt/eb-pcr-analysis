@@ -42,7 +42,7 @@ const updateMarketStatus = () => {
 };
 
 onMounted(async () => {
-  await checkAndClearOldCache();
+  // await checkAndClearOldCache();
   updateMarketStatus();
   // Update every minute
   setInterval(updateMarketStatus, 60000);
