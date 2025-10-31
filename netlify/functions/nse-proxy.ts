@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export async function handler(event, context) {
   try {
     const response = await fetch(
@@ -14,8 +12,6 @@ export async function handler(event, context) {
         }),
       }
     );
-
-    console.log("response from ->", response);
 
     const text = await response.text();
     let data;

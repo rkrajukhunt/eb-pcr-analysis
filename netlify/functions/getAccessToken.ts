@@ -1,44 +1,89 @@
-import axios from "axios";
-import type { Handler } from "@netlify/functions";
+// netlify/functions/get-angel-token.ts
 
-export const handler: Handler = async () => {
+export const handler = async () => {
   try {
-    const response = await axios.post(
+    const response = await fetch(
       "https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword",
       {
-        clientcode: process.env.ANGEL_CLIENT_CODE,
-        password: process.env.ANGEL_PASSWORD,
-      },
-      {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-PrivateKey": process.env.ANGEL_API_KEY,
           Accept: "application/json",
         },
+        body: JSON.stringify({
+          clientcode: process.env.ANGEL_CLIENT_CODE,
+          password: process.env.ANGEL_PASSWORD,
+          totp: process.env.ANGEL_TOTP,
+        }),
       }
     );
 
-    const token = response.data?.data?.jwtToken;
-    if (!token) throw new Error("No token returned from Angel API");
+    console.log("demo -->", response);
+
+    if (!response.ok) {
+      throw new Error(`Login failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const token = data?.data?.jwtToken;
+
+    if (!token) {
+      throw new Error("JWT token missing in response");
+    }
 
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ success: true, token }),
     };
-  } catch (err: any) {
-    console.error("Token fetch error:", err.message);
+  } catch (error: any) {
+    console.error("Error fetching Angel One token:", error);
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-      },
       body: JSON.stringify({
-        error: err.response?.data || err.message || "Unknown error",
+        success: false,
+        message: error.message || "Internal Server Error",
       }),
     };
   }
 };
+
+// export async function handler() {
+//   try {
+//     const response = await fetch(
+//       "https://api.smartapi.angelbroking.com/v1/api/token",
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Accept: "application/json",
+//           "X-Client-Code": process.env.ANGEL_CLIENT_CODE,
+//           "X-API-Key": process.env.ANGEL_API_KEY,
+//         },
+//         body: JSON.stringify({
+//           clientcode: process.env.ANGEL_CLIENT_CODE,
+//           password: process.env.ANGEL_PASSWORD,
+//           totp: process.env.ANGEL_TOTP,
+//           request_token: process.env.ANGEL_REQUEST_TOKEN,
+//         }),
+//       }
+//     );
+
+//     const data = await response.json();
+//     console.log("SmartAPI token response:", data);
+
+//     if (!data.status || !data.data?.jwtToken) {
+//       throw new Error("Failed to get Angel One JWT token");
+//     }
+
+//     return {
+//       statusCode: 200,
+//       body: JSON.stringify({ success: true, token: data.data.jwtToken }),
+//     };
+//   } catch (err) {
+//     console.error("Error fetching Angel One token:", err);
+//     return {
+//       statusCode: 500,
+//       body: JSON.stringify({ success: false, message: err.message }),
+//     };
+//   }
+// }
