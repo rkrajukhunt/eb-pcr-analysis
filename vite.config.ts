@@ -12,14 +12,14 @@ export default defineConfig({
       sassVariables: "src/quasar-variables.sass",
     }),
   ],
-  server: {
-    proxy: {
-      "/nseapi": {
-        target: "https://www.nseindia.com",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/nseapi/, ""),
-      },
-    },
-  },
+  // server: {
+  //   proxy: {
+  //     "/nseapi": {
+  //       target: "https://www.nseindia.com",
+  //       changeOrigin: true,
+  //       secure: false,
+  //       rewrite: (path) => path.replace(/^\/nseapi/, ""),
+  //     },
+  //   },
+  // },
 });

@@ -1,32 +1,17 @@
-import type { Handler } from "@netlify/functions";
-
-export const handler: Handler = async (event) => {
-  const symbol = event.queryStringParameters?.symbol || "NIFTY";
-
+export async function handler(event, context) {
   try {
-    // Step 1: Get cookies first
-    const cookieResponse = await fetch("https://www.nseindia.com", {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml",
-      },
-    });
-
-    const cookies = cookieResponse.headers.get("set-cookie");
-
-    // Step 2: Fetch actual data
-    const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
-
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "application/json",
-        Referer: "https://www.nseindia.com/option-chain",
-        Cookie: cookies || "",
-      },
-    });
+    const response = await fetch(
+      "https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientcode: process.env.ANGEL_CLIENT_CODE,
+          password: process.env.ANGEL_PASSWORD,
+          apikey: process.env.ANGEL_API_KEY,
+        }),
+      }
+    );
 
     const text = await response.text();
     let data;
@@ -52,10 +37,10 @@ export const handler: Handler = async (event) => {
       },
       body: JSON.stringify(data),
     };
-  } catch (error: any) {
+  } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: err.message }),
     };
   }
-};
+}

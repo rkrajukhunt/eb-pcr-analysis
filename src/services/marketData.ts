@@ -115,37 +115,90 @@ export function generateMockPCRData(previousData?: PCRData): PCRData {
   };
 }
 
+// export async function getAngelAccessToken(): Promise<string> {
+//   /**
+//    * ⚙️ How this works:
+//    *
+//    * - For local development:
+//    *     1. Run Netlify locally:
+//    *          netlify dev --port=9999
+//    *     2. Set in your `.env.local`:
+//    *          VITE_NETLIFY_BASE_URL=http://localhost:9999
+//    *
+//    * - For production (deployed on Netlify):
+//    *     No config needed — use relative path:
+//    *          /.netlify/functions/getAccessToken
+//    */
+
+//   const baseUrl = import.meta.env.VITE_NETLIFY_BASE_URL || "";
+//   const endpoint = `${baseUrl}/.netlify/functions/getAccessToken`;
+
+//   const response = await fetch(endpoint);
+//   const data = await response.json();
+
+//   if (!data.success) {
+//     throw new Error(data.message || "Failed to get Angel One token");
+//   }
+
+//   return data.token;
+// }
+
+// export async function getAngelAccessToken(): Promise<string> {
+//   const response = await fetch(
+//     "http://localhost:9999/.netlify/functions/getAccessToken"
+//   );
+//   const data = await response.json();
+
+//   if (!data.success) {
+//     throw new Error(data.message || "Failed to get Angel One token");
+//   }
+
+//   return data.token;
+// }
+
+// /**
+//  * Fetch live option chain data from NSE India
+//  */
+// async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
+//   try {
+//     const url = `https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/option-chain?symbol=${symbol}`;
+//     const token = await getAngelAccessToken();
+
+//     const response = await fetch(url, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//         Accept: "application/json",
+//       },
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`Option chain fetch failed: ${response.status}`);
+//     }
+
+//     return await response.json();
+//   } catch (error) {
+//     console.error("Error fetching Angel Option Chain:", error);
+//     throw error;
+//   }
+// }
+
 /**
  * Fetch live option chain data from NSE India
  */
 async function fetchNSEOptionChain(symbol: IndexSymbol): Promise<any> {
   try {
-    // NSE requires specific headers to prevent blocking
-    const headers = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      Accept: "application/json",
-      "Accept-Language": "en-US,en;q=0.9",
-      Referer: "https://www.nseindia.com/option-chain",
-    };
-
-    // const url = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
-    // const url = `/nseapi/api/option-chain-indices?symbol=${symbol}`; // Using proxy defined in vite.config.ts
-    const url = `/.netlify/functions/nse-proxy?symbol=${symbol}`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: headers,
-      credentials: "include",
-    });
+    const url = `/.netlify/functions/angel-option-chain?symbol=${symbol}`;
+    const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`NSE API error: ${response.status}`);
+      throw new Error(`API error: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return data.optionChain;
   } catch (error) {
-    console.error("Error fetching NSE data:", error);
+    console.error("Error fetching Angel Option Chain:", error);
     throw error;
   }
 }
